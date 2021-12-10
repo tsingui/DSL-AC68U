@@ -1,5 +1,26 @@
 version: 2.1
+
+orbs: 
+  git-shallow-clone: guitarrapc/git-shallow-clone@2.4.0
+
 jobs:
+  getcode:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - run:
+          name: Get code
+          shell: /bin/bash
+          command: |
+            #git clone --depth 1 --branch $CIRCLE_BRANCH  $CIRCLE_REPOSITORY_URL
+            pwd
+            ls
+            rm -Rf .git
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
   build:
     parameters:
       model:
@@ -18,7 +39,8 @@ jobs:
           TERM: "xterm-256color"
     resource_class: large
     steps:
-      - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Set Version from TAG
           shell: /bin/bash
@@ -55,6 +77,9 @@ jobs:
             elif [[ ${MODEL} == "dsl-ax82u" ]]; then
               echo $BWDPI_KEYS_DSLAX82U | base64 -d > /tmp/keys.tgz
               tar xzf /tmp/keys.tgz --no-same-owner -C ${PROJECT_DIR}/release/${RELEASE_DIR}/router/bwdpi_source/prebuild/DSL-AX82U
+            elif [[ ${MODEL} == "rt-ax82u" ]]; then
+              echo $BWDPI_KEYS_RTAX82U | base64 -d > /tmp/keys.tgz
+              tar xzf /tmp/keys.tgz --no-same-owner -C ${PROJECT_DIR}/release/${RELEASE_DIR}/router/bwdpi_source/prebuild/RT-AX82U
             fi
             echo "----- BUILD -----"
             make ${MODEL} | tee "/tmp/build.log"
@@ -70,9 +95,9 @@ jobs:
               mv "${IMAGE_PATH}/DSL-AC68U_${CIRCLE_TAG}.trx" "${IMAGE_PATH}/DSL-AC68U_${CIRCLE_TAG}_NO-DSL-FIRMWARE.trx"
               cp ${IMAGE_PATH}/*.trx workspace/release/
               cp ${IMAGE_PATH}/DSL*DSL*.md5 workspace/release/ || :
-            elif [[ ${MODEL} == "dsl-ax82u" ]]; then
-              cp ${IMAGE_PATH}/*_cferom_pureubi.w workspace/release
-              cp ${IMAGE_PATH}/*_cferom_pureubi.md5 workspace/release || :
+            elif [[ ${MODEL} == "rt-ax82u" ]] || [[ ${MODEL} == "dsl-ax82u" ]]; then
+              cp ${IMAGE_PATH}/*_cferom_puresqubi.md5 workspace/release
+              cp ${IMAGE_PATH}/*_cferom_puresqubi.w   workspace/release || :
             fi
             cp /tmp/build.log workspace/release/${MODEL}-build.log
             if [ -z "${CIRCLE_TAG}" ]; then
@@ -112,8 +137,9 @@ jobs:
             MINOR_VER=$(echo "${CIRCLE_TAG}" | sed -E 's/([0-9.]*)[_-]?(.*)/\2/')
             RELEASE_NOTE_FILE=$(echo "${MAJOR_VER}_${MINOR_VER}_note.txt" | sed "s/\./_/")
             echo "Generating manifest file..."
-            echo "DSL-AC68U#FW${MAJOR_VER}#EXT${MINOR_VER}#BETAFW0#BETAEXT0#" > ${UPDATE_DIR}/manifest.txt
+            echo "DSL-AC68U#FW${MAJOR_VER}#EXT${MINOR_VER}#BETAFW0#BETAEXT0#"  > ${UPDATE_DIR}/manifest.txt
             echo "DSL-AX82U#FW${MAJOR_VER}#EXT${MINOR_VER}#BETAFW0#BETAEXT0#" >> ${UPDATE_DIR}/manifest.txt
+            echo "RT-AX82U#FW${MAJOR_VER}#EXT${MINOR_VER}#BETAFW0#BETAEXT0#"  >>  ${UPDATE_DIR}/manifest.txt
             cp $HOME/project/workspace/release/CHANGELOG ${UPDATE_DIR}/"${RELEASE_NOTE_FILE}"
             echo "Uploading to github manifest and ${RELEASE_NOTE_FILE}"
             git add ${UPDATE_DIR}
@@ -150,10 +176,16 @@ workflows:
   version: 2.1
   build_and_release:
     jobs:
+      - getcode:
+          filters:
+            tags:
+              only: /.*/
       - build:
           name: "build_dsl-ac68u"
           model: "dsl-ac68u"
           release_dir: "src-rt-6.x.4708"
+          requires:
+            - getcode
           filters:
             tags:
               only: /.*/
@@ -161,10 +193,27 @@ workflows:
               ignore:
                 - master
                 - mainline
+                - DEV_45581_3
       - build:
           name: "build_dsl-ax82u"
           model: "dsl-ax82u"
           release_dir: "src-rt-5.02axhnd.675x"
+          requires:
+            - getcode
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore:
+                - master
+                - mainline
+                - DEV_45581_3
+      - build:
+          name: "build_rt-ax82u"
+          model: "rt-ax82u"
+          release_dir: "src-rt-5.02axhnd.675x"
+          requires:
+            - getcode
           filters:
             tags:
               only: /.*/
