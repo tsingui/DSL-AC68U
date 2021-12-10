@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2003-2004  Narcis Ilisei <inarcis2002@hotpop.com>
  * Copyright (C) 2006       Steve Horbachuk
- * Copyright (C) 2010-2020  Joachim Nilsson <troglobit@gmail.com>
+ * Copyright (C) 2010-2021  Joachim Wiberg <troglobit@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -180,7 +180,7 @@ static int is_address_valid(int family, const char *host)
 	 * block cloudflare ips so that https://1.1.1.1/cdn-cgi/trace would work
 	 * even if 1.1.1.1 is the first ip in the response body
 	 */
-	const char *except[] = {
+	static const char *except[] = {
 		"1.1.1.1",
 		"1.0.0.1",
 		"2606:4700:4700::1111",
@@ -254,7 +254,7 @@ error:
 static int parse_ipv4_address(char *buffer, char *address, size_t len)
 {
 	int found = 0;
-	char *accept = "0123456789.";
+	static const char *accept = "0123456789.";
 	char *needle, *haystack, *end;
 	struct in_addr  addr;
 
@@ -294,7 +294,7 @@ static int parse_ipv4_address(char *buffer, char *address, size_t len)
 static int parse_ipv6_address(char *buffer, char *address, size_t len)
 {
 	int found = 0;
-	char *accept = "0123456789abcdefABCDEF:";
+	static const char *accept = "0123456789abcdefABCDEF:";
 	char *needle, *haystack, *end;
 	struct in6_addr addr;
 
@@ -726,12 +726,6 @@ static int update_alias_table(ddns_t *ctx)
 			rc = 0;
 
 			if (!alias->update_required) {
-#ifdef ASUSWRT
-                                if (script_exec && !alias->script_called)
-                                {
-                                        goto script_exec;
-                                }
-#endif
 				if (exec_mode == EXEC_MODE_COMPAT)
 					continue;
 				event = "nochg";
@@ -743,21 +737,13 @@ static int update_alias_table(ddns_t *ctx)
 				/* Only reset if send_update() succeeds. */
 				alias->update_required = 0;
 				alias->last_update = time(NULL);
-#ifdef ASUSWRT
-				remove_cache_file_with_hostname(alias);
-#endif
 				/* Update cache file for this entry */
 				write_cache_file(alias);
 			}
 
 			/* Run command or script on successful update. */
-			if (script_exec) {
-#ifdef ASUSWRT
-			script_exec:
-				alias->script_called = 1;
-#endif
+			if (script_exec)
 				os_shell_execute(script_exec, alias->address, alias->ipv6_address, alias->name, event, rc);
-			}
 		}
 
 		if (RC_DDNS_RSP_NOTOK == rc || RC_DDNS_RSP_AUTH_FAIL == rc || RC_DDNS_RSP_NOHOST == rc)
@@ -772,6 +758,10 @@ static int update_alias_table(ddns_t *ctx)
 				/* Return these cases (define in check_error()) will retry again in Inadyn,
 				 * so set the error code and retry in watchdog */
 				/* defined in check_error() */
+				case RC_OK:
+					nvram_set("ddns_return_code", "200");
+					nvram_set("ddns_return_code_chk", "200");
+					break;
 				case RC_TCP_INVALID_REMOTE_ADDR: /* Probably temporary DNS error. */
 				case RC_TCP_CONNECT_FAILED:      /* Cannot connect to DDNS server atm. */
 				case RC_TCP_SEND_ERROR:
@@ -862,7 +852,7 @@ static int get_encoded_user_passwd(void)
 			break;
 		}
 
-		logit(LOG_DEBUG, "Base64 encoded string: %s", encode);
+//		logit(LOG_DEBUG, "Base64 encoded string: %s", encode);
 		info->creds.encoded_password = encode;
 		info->creds.encoded = 1;
 		info->creds.size = strlen(info->creds.encoded_password);
