@@ -3490,7 +3490,7 @@ NOIP:
 			start_ovpn_eas();
 #endif
 			stop_ddns();
-			start_ddns();
+			start_ddns(NULL);
 		}
 #ifdef RTCONFIG_TR069
 		if(wan_unit == 0 ){
@@ -3536,7 +3536,7 @@ NOIP:
 	/* ntp is set, but it didn't just get set, so ntp_synced didn't already did these */
 	if (nvram_get_int("ntp_ready") && !first_ntp_sync) {
 		stop_ddns();
-		start_ddns();
+		start_ddns(NULL);
 	}
 
 #ifdef RTCONFIG_VPNC
