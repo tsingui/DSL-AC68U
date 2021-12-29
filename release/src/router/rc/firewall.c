@@ -3380,6 +3380,7 @@ filter_setting(int wan_unit, char *lan_if, char *lan_ip, char *logaccept, char *
 		    ":OVPN - [0:0]\n"
 #endif
 #ifdef RTCONFIG_PARENTALCTRL
+		    ":WGNPControls - [0:0]\n"
 		    ":PControls - [0:0]\n"
 #endif
 		    ":NSFW - [0:0]\n"
@@ -4596,7 +4597,7 @@ TRACE_PT("write wl filter\n");
 #endif
 
 	// extra filter
-	//write_extra_filter(fp);
+	write_extra_filter(fp);
 
 	fprintf(fp, "COMMIT\n\n");
 	if (fp) fclose(fp);
@@ -4611,7 +4612,7 @@ TRACE_PT("write wl filter\n");
 	if (ipv6_enabled())
 	{
 		// extra filter
-		//write_extra_filter6(fp_ipv6);
+		write_extra_filter6(fp_ipv6);
 
 		fprintf(fp_ipv6, "COMMIT\n\n");
 		if (fp_ipv6) fclose(fp_ipv6);
@@ -5961,7 +5962,7 @@ TRACE_PT("write wl filter\n");
 #endif
 
 	// extra filter
-	//write_extra_filter(fp);
+	write_extra_filter(fp);
 
 	fprintf(fp, "COMMIT\n\n");
 	if (fp) fclose(fp);
@@ -5976,7 +5977,7 @@ TRACE_PT("write wl filter\n");
 	if (ipv6_enabled())
 	{
 		// extra filter
-		//write_extra_filter6(fp_ipv6);
+		write_extra_filter6(fp_ipv6);
 
 		fprintf(fp_ipv6, "COMMIT\n\n");
 		if (fp_ipv6) fclose(fp_ipv6);
