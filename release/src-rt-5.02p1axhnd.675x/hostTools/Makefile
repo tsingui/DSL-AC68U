@@ -81,8 +81,14 @@ bcmImageBuilder: bcmImageBuilder.c
 version:
 	cp -f ../router/shared/version.h .
 
+ifneq ($(wildcard ./prebuilt/$(BUILD_NAME)/addvtoken),)
 addvtoken:
 	@-cp -f ./prebuilt/$(BUILD_NAME)/addvtoken .
+else
+addvtoken: addvtoken.c
+	rm -rf addvtoken
+	$(CC) $(CFLAGS) -o addvtoken addvtoken.c 
+endif
 
 gencrc32: gencrc32.c
 	$(CC) $(CFLAGS) -o gencrc32 gencrc32.c 
@@ -175,9 +181,9 @@ mkjffs2:
 	$(MAKE) -C $(JFFS2_DIR) && \
 	mv jffs2/mkfs.jffs2 .
 
-build_cmplzma:
-	cp -f ./prebuilt/cmplzma .
-	cp -f ./prebuilt/lzmacmd .
+build_cmplzma: mklzma_cmd cmplzma.cpp
+	g++ $(CFLAGS) -c cmplzma.cpp && \
+	g++  -o cmplzma cmplzma.o -lm
 
 untar_lz4hc: 
 	if [ ! -e $(LZ4_DIR) ]; then \

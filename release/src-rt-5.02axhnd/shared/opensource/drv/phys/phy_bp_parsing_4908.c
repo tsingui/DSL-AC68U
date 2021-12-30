@@ -57,9 +57,6 @@ phy_type_t bp_parse_phy_type(const EMAC_PORT_INFO *port_info)
     phy_type_t phy_type = PHY_TYPE_UNKNOWN;
     uint32_t phy_id;
     uint32_t intf;
-    char boardIdStr[BP_BOARD_ID_LEN];
-
-    BpGetBoardId(boardIdStr);
 
     phy_id = port_info->phy_id;
 
@@ -95,14 +92,6 @@ phy_type_t bp_parse_phy_type(const EMAC_PORT_INFO *port_info)
         case MAC_IF_SERDES:
             phy_type = PHY_TYPE_SF2_SERDES;
             break;
-	case MAC_IF_HSGMII:
-	{
-	    if(!strcmp(boardIdStr, "94908AX11000GPY"))
-		phy_type = PHY_TYPE_GPY211;
-	    else
-		phy_type = PHY_TYPE_EXT3;
-		break;
-	}
     }
 
     return phy_type;

@@ -53,14 +53,14 @@ CURLcode Curl_range(struct Curl_easy *data)
     if((to_t == CURL_OFFT_INVAL) && !from_t) {
       /* X - */
       data->state.resume_from = from;
-      DEBUGF(infof(data, "RANGE %" CURL_FORMAT_CURL_OFF_T " to end of file",
+      DEBUGF(infof(data, "RANGE %" CURL_FORMAT_CURL_OFF_T " to end of file\n",
                    from));
     }
     else if((from_t == CURL_OFFT_INVAL) && !to_t) {
       /* -Y */
       data->req.maxdownload = to;
       data->state.resume_from = -to;
-      DEBUGF(infof(data, "RANGE the last %" CURL_FORMAT_CURL_OFF_T " bytes",
+      DEBUGF(infof(data, "RANGE the last %" CURL_FORMAT_CURL_OFF_T " bytes\n",
                    to));
     }
     else {
@@ -78,12 +78,12 @@ CURLcode Curl_range(struct Curl_easy *data)
       data->req.maxdownload = totalsize + 1; /* include last byte */
       data->state.resume_from = from;
       DEBUGF(infof(data, "RANGE from %" CURL_FORMAT_CURL_OFF_T
-                   " getting %" CURL_FORMAT_CURL_OFF_T " bytes",
+                   " getting %" CURL_FORMAT_CURL_OFF_T " bytes\n",
                    from, data->req.maxdownload));
     }
     DEBUGF(infof(data, "range-download from %" CURL_FORMAT_CURL_OFF_T
                  " to %" CURL_FORMAT_CURL_OFF_T ", totally %"
-                 CURL_FORMAT_CURL_OFF_T " bytes",
+                 CURL_FORMAT_CURL_OFF_T " bytes\n",
                  from, to, data->req.maxdownload));
   }
   else

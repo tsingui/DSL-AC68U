@@ -102,16 +102,14 @@ int curlx_win32_open(const char *filename, int oflag, ...)
   va_end(param);
 
 #ifdef _UNICODE
-  if(filename_w) {
+  if(filename_w)
     result = _wopen(filename_w, oflag, pmode);
-    free(filename_w);
-  }
-  else
-    errno = EINVAL;
-  return result;
-#else
-  return (_open)(filename, oflag, pmode);
+  free(filename_w);
+  if(result != -1)
+    return result;
 #endif
+
+  return (_open)(filename, oflag, pmode);
 }
 
 FILE *curlx_win32_fopen(const char *filename, const char *mode)
@@ -122,20 +120,19 @@ FILE *curlx_win32_fopen(const char *filename, const char *mode)
   wchar_t *mode_w = curlx_convert_UTF8_to_wchar(mode);
   if(filename_w && mode_w)
     result = _wfopen(filename_w, mode_w);
-  else
-    errno = EINVAL;
   free(filename_w);
   free(mode_w);
-  return result;
-#else
-  return (fopen)(filename, mode);
+  if(result)
+    return result;
 #endif
+
+  return (fopen)(filename, mode);
 }
 
 int curlx_win32_stat(const char *path, struct_stat *buffer)
 {
-#ifdef _UNICODE
   int result = -1;
+#ifdef _UNICODE
   wchar_t *path_w = curlx_convert_UTF8_to_wchar(path);
   if(path_w) {
 #if defined(USE_WIN32_SMALL_FILES)
@@ -144,34 +141,31 @@ int curlx_win32_stat(const char *path, struct_stat *buffer)
     result = _wstati64(path_w, buffer);
 #endif
     free(path_w);
+    if(result != -1)
+      return result;
   }
-  else
-    errno = EINVAL;
-  return result;
-#else
+#endif /* _UNICODE */
+
 #if defined(USE_WIN32_SMALL_FILES)
-  return _stat(path, buffer);
+  result = _stat(path, buffer);
 #else
-  return _stati64(path, buffer);
+  result = _stati64(path, buffer);
 #endif
-#endif
+  return result;
 }
 
 int curlx_win32_access(const char *path, int mode)
 {
 #if defined(_UNICODE)
-  int result = -1;
   wchar_t *path_w = curlx_convert_UTF8_to_wchar(path);
   if(path_w) {
-    result = _waccess(path_w, mode);
+    int result = _waccess(path_w, mode);
     free(path_w);
+    if(result != -1)
+      return result;
   }
-  else
-    errno = EINVAL;
-  return result;
-#else
+#endif /* _UNICODE */
   return _access(path, mode);
-#endif
 }
 
 #endif /* USE_WIN32_LARGE_FILES || USE_WIN32_SMALL_FILES */

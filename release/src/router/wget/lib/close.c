@@ -1,5 +1,5 @@
 /* close replacement.
-   Copyright (C) 2008-2021 Free Software Foundation, Inc.
+   Copyright (C) 2008-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,8 +28,7 @@
 
 #undef close
 
-#if defined _WIN32 && !defined __CYGWIN__
-# if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
 static int
 close_nothrow (int fd)
 {
@@ -37,7 +36,7 @@ close_nothrow (int fd)
 
   TRY_MSVC_INVAL
     {
-      result = _close (fd);
+      result = close (fd);
     }
   CATCH_MSVC_INVAL
     {
@@ -48,9 +47,6 @@ close_nothrow (int fd)
 
   return result;
 }
-# else
-#  define close_nothrow _close
-# endif
 #else
 # define close_nothrow close
 #endif

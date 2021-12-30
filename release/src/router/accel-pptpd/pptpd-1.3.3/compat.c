@@ -12,8 +12,8 @@
 
 #include "compat.h"
 
-#include <string.h>
 #ifndef HAVE_STRLCPY
+#include <string.h>
 #include <stdio.h>
 
 void strlcpy(char *dst, const char *src, size_t size)

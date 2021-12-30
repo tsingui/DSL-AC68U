@@ -52,7 +52,6 @@ ecdsa_generate_keypair (struct ecc_point *pub,
   mp_size_t itch = 3*ecc->p.size + ecc->mul_g_itch;
 
   assert (key->ecc == ecc);
-  assert (ecc->h_to_a_itch <= ecc->mul_g_itch);
 
   TMP_ALLOC (p, itch);
 

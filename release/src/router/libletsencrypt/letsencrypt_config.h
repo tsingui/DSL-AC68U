@@ -34,8 +34,7 @@ typedef enum {
 	LE_SB_DNS,
 	LE_SB_CHA_VRF,
 	LE_SB_CSR,
-	LE_SB_REVOKE,
-	LE_SB_CHA_FW,
+	LE_SB_REVOKE
 } le_sbsts_t;
 
 //reason

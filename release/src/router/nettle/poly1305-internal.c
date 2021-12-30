@@ -63,7 +63,6 @@
 #include <string.h>
 
 #include "poly1305.h"
-#include "poly1305-internal.h"
 
 #include "macros.h"
 
@@ -86,7 +85,7 @@
 #define h4 hh
 
 void
-_nettle_poly1305_set_key(struct poly1305_ctx *ctx, const uint8_t key[16])
+poly1305_set_key(struct poly1305_ctx *ctx, const uint8_t key[16])
 {
   uint32_t t0,t1,t2,t3;
 
@@ -114,7 +113,7 @@ _nettle_poly1305_set_key(struct poly1305_ctx *ctx, const uint8_t key[16])
 }
 
 void
-_nettle_poly1305_block (struct poly1305_ctx *ctx, const uint8_t *m, unsigned t4)
+_poly1305_block (struct poly1305_ctx *ctx, const uint8_t *m, unsigned t4)
 {
   uint32_t t0,t1,t2,t3;
   uint32_t b;
@@ -149,7 +148,7 @@ _nettle_poly1305_block (struct poly1305_ctx *ctx, const uint8_t *m, unsigned t4)
 
 /* Adds digest to the nonce */
 void
-_nettle_poly1305_digest (struct poly1305_ctx *ctx, union nettle_block16 *s)
+poly1305_digest (struct poly1305_ctx *ctx, union nettle_block16 *s)
 {
   uint32_t b, nb;
   uint64_t f0,f1,f2,f3;

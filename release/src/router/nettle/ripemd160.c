@@ -40,7 +40,6 @@
 #include <assert.h>
 
 #include "ripemd160.h"
-#include "ripemd160-internal.h"
 
 #include "macros.h"
 #include "nettle-write.h"

@@ -40,7 +40,6 @@
 #include <string.h>
 
 #include "ripemd160.h"
-#include "ripemd160-internal.h"
 
 #include "macros.h"
 

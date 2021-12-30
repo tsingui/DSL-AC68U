@@ -17,7 +17,4 @@ ifneq ($(strip $(BCA_CPEROUTER)),)
 EXTRA_CFLAGS += -DWLBIN_COMPAT
 endif
 
-# new dhd lock flag
-EXTRA_CFLAGS += -DBCM_DHD_LOCK
-
 EXTRA_CFLAGS += -I$(WLAN_SHARED_DIR) -DBCA_CPE_BSP_SHARED

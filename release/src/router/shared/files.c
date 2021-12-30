@@ -287,7 +287,7 @@ int check_if_dir_writable(const char *dir)
 	if (!dir || *dir == '\0')
 		return -1;
 
-	snprintf(tmp, sizeof(tmp), "%s/.test_dir_writable", dir);
+	sprintf(tmp, "%s/.test_dir_writable", dir);
 	if ((fp = fopen(tmp, "w")) != NULL) {
 		fclose(fp);
 		unlink(tmp);

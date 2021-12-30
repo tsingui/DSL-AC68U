@@ -18,18 +18,17 @@
 <script language="JavaScript" type="text/javascript" src="/popup.js"></script>
 <script type="text/javascript" language="JavaScript" src="/help.js"></script>
 <script type="text/javascript" language="JavaScript" src="/validator.js"></script>
-<script type="text/javascript" language="JavaScript" src="/form.js"></script>
 <script type="text/javascript" language="JavaScript" src="/js/table/table.js"></script>
 <script type="text/javascript" language="JavaScript" src="/js/jquery.js"></script>
-<script type="text/javascript" language="JavaScript" src="/js/httpApi.js"></script>
+<script type="text/javascript" src="/js/httpApi.js"></script>
 <script>
 var autofw_rulelist_array = [];
 var wans_mode ='<% nvram_get("wans_mode"); %>';
-var faq_href = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=109";
 
 function initial(){
 	show_menu();
-	document.getElementById("faq").href=faq_href;
+	// https://www.asus.com/support/FAQ/114110/
+	httpApi.faqURL("114110", function(url){document.getElementById("faq").href=url;});
 	well_known_apps();
 	//parse nvram to array
 	var parseNvramToArray = function() {
@@ -175,9 +174,9 @@ function showautofw_rulelist(){
 				},
 				{
 					"editMode" : "text",
-					"title" : "<#IPConnection_autofwInPort_itemname#><div class=\"setup_info_icon\" style=\"display:none;margin-left:185px;\"></div>",
+					"title" : "<#IPConnection_autofwInPort_itemname#>",
 					"maxlength" : "11",
-					"validator" : "portRangeS46"
+					"validator" : "portRange"
 				},
 				{
 					"editMode" : "select",

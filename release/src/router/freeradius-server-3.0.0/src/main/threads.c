@@ -225,39 +225,11 @@ static const CONF_PARSER thread_config[] = {
 
 static pthread_mutex_t *ssl_mutexes = NULL;
 
-#ifdef HAVE_CRYPTO_SET_ID_CALLBACK
-static unsigned long get_ssl_id(void)
+static unsigned long ssl_id_function(void)
 {
-	unsigned long ret;
-	pthread_t thread = pthread_self();
-
-	if (sizeof(ret) >= sizeof(thread)) {
-		memcpy(&ret, &thread, sizeof(thread));
-	} else {
-		memcpy(&ret, &thread, sizeof(ret));
-	}
-
-	return ret;
+	return (unsigned long) pthread_self();
 }
 
-/*
- *	Use preprocessor magic to get the right function and argument
- *	to use.  This avoids ifdef's through the rest of the code.
- */
-#if OPENSSL_VERSION_NUMBER < 0x10000000L
-#define ssl_id_function get_ssl_id
-#define set_id_callback CRYPTO_set_id_callback
-
-#else
-static void ssl_id_function(CRYPTO_THREADID *id)
-{
-	CRYPTO_THREADID_set_numeric(id, get_ssl_id());
-}
-#define set_id_callback CRYPTO_THREADID_set_callback
-#endif
-#endif
-
-#ifdef HAVE_CRYPTO_SET_LOCKING_CALLBACK
 static void ssl_locking_function(int mode, int n, UNUSED char const *file, UNUSED int line)
 {
 	if (mode & CRYPTO_LOCK) {
@@ -266,7 +238,6 @@ static void ssl_locking_function(int mode, int n, UNUSED char const *file, UNUSE
 		pthread_mutex_unlock(&(ssl_mutexes[n]));
 	}
 }
-#endif
 
 static int setup_ssl_mutexes(void)
 {
@@ -289,12 +260,8 @@ static int setup_ssl_mutexes(void)
 		pthread_mutex_init(&(ssl_mutexes[i]), NULL);
 	}
 
-#ifdef HAVE_CRYPTO_SET_ID_CALLBACK
-	set_id_callback(ssl_id_function);
-#endif
-#ifdef HAVE_CRYPTO_SET_LOCKING_CALLBACK
+	CRYPTO_set_id_callback(ssl_id_function);
 	CRYPTO_set_locking_callback(ssl_locking_function);
-#endif
 
 	return 1;
 }
@@ -755,11 +722,7 @@ static void *request_handler_thread(void *arg)
 	 *	must remove the thread's error queue before
 	 *	exiting to prevent memory leaks.
 	 */
-#if OPENSSL_VERSION_NUMBER < 0x10000000L
 	ERR_remove_state(0);
-#elif OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	ERR_remove_thread_state(NULL);
-#endif
 #endif
 
 	pthread_mutex_lock(&thread_pool.queue_mutex);

@@ -146,8 +146,6 @@ function register_event(){
 		});
 	});
 }
-
-var faq_href = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=102";
 var scale = [1, 5, 10, 20, 30, 50, 75, 100];
 var download_maximum = 100 * 1024;
 var upload_maximum = 100 * 1024;
@@ -177,7 +175,8 @@ function initial(){
 
 	$('#scale_unit').val(getTrafficUnit());
 	show_menu();
-	document.getElementById("faq").href=faq_href;
+	// https://www.asus.com/support/FAQ/1008717/
+	httpApi.faqURL("1008717", function(url){document.getElementById("faq").href=url;});
 
 	if(totalClientNum.online == 0) {
 		var loop_count = 0;

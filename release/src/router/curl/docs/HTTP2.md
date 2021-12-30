@@ -105,8 +105,9 @@ Since 7.47.0, the curl tool enables HTTP/2 by default for HTTPS connections.
 curl tool limitations
 ---------------------
 
-The command line tool doesn't support HTTP/2 server push. It supports
-multiplexing when the parallel transfer option is used.
+The command line tool also doesn't support HTTP/2 server push for the same
+reason it doesn't do multiplexing: it needs to use the multi interface for
+that so that multiplexing is supported.
 
 HTTP Alternative Services
 -------------------------

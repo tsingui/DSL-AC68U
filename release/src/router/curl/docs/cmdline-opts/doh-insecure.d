@@ -1,8 +1,7 @@
 Long: doh-insecure
-Help: Allow insecure DoH server connections
+Help: Allow insecure DOH server connections
 Protocols: all
 Added: 7.76.0
 Category: dns tls
-Example: --doh-insecure --doh-url https://doh.example $URL
 ---
-Same as --insecure but used for DoH (DNS-over-HTTPS).
+Same as --insecure but used for DOH (DNS-over-HTTPS).

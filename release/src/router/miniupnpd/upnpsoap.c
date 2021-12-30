@@ -2,7 +2,7 @@
 /* vim: tabstop=4 shiftwidth=4 noexpandtab
  * MiniUPnP project
  * http://miniupnp.free.fr/ or https://miniupnp.tuxfamily.org/
- * (c) 2006-2021 Thomas Bernard
+ * (c) 2006-2020 Thomas Bernard
  * This software is subject to the conditions detailed
  * in the LICENCE file provided within the distribution */
 
@@ -351,15 +351,17 @@ GetExternalIPAddress(struct upnphttp * h, const char * action, const char * ns)
 		{
 			syslog(LOG_ERR, "Failed to get ip address for interface %s",
 				ext_if_name);
-			ext_ip_addr[0] = '\0';
+			strncpy(ext_ip_addr, "0.0.0.0", INET_ADDRSTRLEN);
+#if 0
 		} else if (addr_is_reserved(&addr)) {
 			syslog(LOG_NOTICE, "private/reserved address %s is not suitable for external IP", ext_ip_addr);
-			ext_ip_addr[0] = '\0';
+			strncpy(ext_ip_addr, "0.0.0.0", INET_ADDRSTRLEN);
+#endif
 		}
 	}
 #else
 	struct lan_addr_s * lan_addr;
-	ext_ip_addr[0] = '\0';
+	strncpy(ext_ip_addr, "0.0.0.0", INET_ADDRSTRLEN);
 	for(lan_addr = lan_addrs.lh_first; lan_addr != NULL; lan_addr = lan_addr->list.le_next)
 	{
 		if( (h->clientaddr.s_addr & lan_addr->mask.s_addr)
@@ -370,17 +372,11 @@ GetExternalIPAddress(struct upnphttp * h, const char * action, const char * ns)
 		}
 	}
 #endif
-	/* WANIPConnection:2 Service 2.3.13 :
-	 * When the external IP address could not be retrieved by the gateway
-	 * (for example, because the interface is down or because there was a
-	 * failure in the last connection setup attempt),
-	 * then the ExternalIPAddress MUST be equal to the empty string.
-	 *
-	 * There is no precise requirement on how theses cases must be handled
-	 * in IGDv1 specifications, but ExternalIPAddress default value is empty
-	 * string. */
 	if (strcmp(ext_ip_addr, "0.0.0.0") == 0)
-		ext_ip_addr[0] = '\0';
+	{
+		SoapError(h, 501, "Action Failed");
+		return;
+	}
 	bodylen = snprintf(body, sizeof(body), resp,
 	              action, ns, /*SERVICE_TYPE_WANIPC,*/
 				  ext_ip_addr, action);

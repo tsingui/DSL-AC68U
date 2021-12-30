@@ -74,7 +74,7 @@ check_PROGRAMS = \
   multi-debugcallback \
   multi-double \
   multi-formadd \
-  multi-legacy \
+  multi-poll \
   multi-post \
   multi-single \
   parseurl \

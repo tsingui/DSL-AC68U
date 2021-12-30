@@ -1,5 +1,5 @@
 /* Work around platform bugs in utime.
-   Copyright (C) 2017-2021 Free Software Foundation, Inc.
+   Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,16 +29,10 @@
 # include "filename.h"
 # include "malloca.h"
 
-/* Don't assume that UNICODE is not defined.  */
-# undef CreateFile
-# define CreateFile CreateFileA
-# undef GetFileAttributes
-# define GetFileAttributes GetFileAttributesA
-
 int
 _gl_utimens_windows (const char *name, struct timespec ts[2])
 {
-  /* POSIX <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13>
+  /* POSIX <http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_13>
      specifies: "More than two leading <slash> characters shall be treated as
      a single <slash> character."  */
   if (ISSLASH (name[0]) && ISSLASH (name[1]) && ISSLASH (name[2]))
@@ -89,8 +83,8 @@ _gl_utimens_windows (const char *name, struct timespec ts[2])
 
   /* Open a handle to the file.
      CreateFile
-     <https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilea>
-     <https://docs.microsoft.com/en-us/windows/desktop/FileIO/creating-and-opening-files>  */
+     <https://msdn.microsoft.com/en-us/library/aa363858.aspx>
+     <https://msdn.microsoft.com/en-us/library/aa363874.aspx>  */
   HANDLE handle =
     CreateFile (rname,
                 FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES,
@@ -111,7 +105,7 @@ _gl_utimens_windows (const char *name, struct timespec ts[2])
   if (check_dir)
     {
       /* GetFileAttributes
-         <https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-getfileattributesa>  */
+         <https://msdn.microsoft.com/en-us/library/aa364944.aspx>  */
       DWORD attributes = GetFileAttributes (rname);
       if (attributes == INVALID_FILE_ATTRIBUTES)
         {
@@ -131,18 +125,18 @@ _gl_utimens_windows (const char *name, struct timespec ts[2])
 
   {
     /* Use SetFileTime(). See
-       <https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-setfiletime>
-       <https://docs.microsoft.com/en-us/windows/desktop/api/minwinbase/ns-minwinbase-filetime>  */
+       <https://msdn.microsoft.com/en-us/library/ms724933.aspx>
+       <https://msdn.microsoft.com/en-us/library/ms724284.aspx>  */
     FILETIME last_access_time;
     FILETIME last_write_time;
     if (ts == NULL)
       {
         /* GetSystemTimeAsFileTime is the same as
            GetSystemTime followed by SystemTimeToFileTime.
-           <https://docs.microsoft.com/en-us/windows/desktop/api/sysinfoapi/nf-sysinfoapi-getsystemtimeasfiletime>.
+           <https://msdn.microsoft.com/en-us/library/ms724397.aspx>.
            It would be overkill to use
            GetSystemTimePreciseAsFileTime
-           <https://docs.microsoft.com/en-us/windows/desktop/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime>.  */
+           <https://msdn.microsoft.com/en-us/library/hh706895.aspx>.  */
         FILETIME current_time;
         GetSystemTimeAsFileTime (&current_time);
         last_access_time = current_time;
@@ -230,7 +224,7 @@ _gl_utimens_windows (const char *name, struct timespec ts[2])
         errno = ENAMETOOLONG;
         break;
 
-      case ERROR_DELETE_PENDING: /* XXX map to EACCES or EPERM? */
+      case ERROR_DELETE_PENDING: /* XXX map to EACCESS or EPERM? */
         errno = EPERM;
         break;
 
@@ -257,32 +251,6 @@ utime (const char *name, const struct utimbuf *ts)
       ts_with_nanoseconds[1].tv_nsec = 0;
       return _gl_utimens_windows (name, ts_with_nanoseconds);
     }
-}
-
-#else
-
-# include <errno.h>
-# include <sys/stat.h>
-# include "filename.h"
-
-int
-utime (const char *name, const struct utimbuf *ts)
-#undef utime
-{
-# if REPLACE_FUNC_UTIME_FILE
-  /* macOS 10.13 mistakenly succeeds when given a symbolic link to a
-     non-directory with a trailing slash.  */
-  size_t len = strlen (name);
-  if (len > 0 && ISSLASH (name[len - 1]))
-    {
-      struct stat buf;
-
-      if (stat (name, &buf) == -1 && errno != EOVERFLOW)
-        return -1;
-    }
-# endif /* REPLACE_FUNC_UTIME_FILE */
-
-  return utime (name, ts);
 }
 
 #endif

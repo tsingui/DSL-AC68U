@@ -185,7 +185,6 @@ const struct Curl_handler Curl_handler_telnet = {
   ZERO_NULL,                            /* disconnect */
   ZERO_NULL,                            /* readwrite */
   ZERO_NULL,                            /* connection_check */
-  ZERO_NULL,                            /* attach connection */
   PORT_TELNET,                          /* defport */
   CURLPROTO_TELNET,                     /* protocol */
   CURLPROTO_TELNET,                     /* family */
@@ -268,9 +267,9 @@ static void printoption(struct Curl_easy *data,
   if(data->set.verbose) {
     if(cmd == CURL_IAC) {
       if(CURL_TELCMD_OK(option))
-        infof(data, "%s IAC %s", direction, CURL_TELCMD(option));
+        infof(data, "%s IAC %s\n", direction, CURL_TELCMD(option));
       else
-        infof(data, "%s IAC %d", direction, option);
+        infof(data, "%s IAC %d\n", direction, option);
     }
     else {
       const char *fmt = (cmd == CURL_WILL) ? "WILL" :
@@ -287,12 +286,12 @@ static void printoption(struct Curl_easy *data,
           opt = NULL;
 
         if(opt)
-          infof(data, "%s %s %s", direction, fmt, opt);
+          infof(data, "%s %s %s\n", direction, fmt, opt);
         else
-          infof(data, "%s %s %d", direction, fmt, option);
+          infof(data, "%s %s %d\n", direction, fmt, option);
       }
       else
-        infof(data, "%s %d %d", direction, cmd, option);
+        infof(data, "%s %d %d\n", direction, cmd, option);
     }
   }
 }
@@ -765,6 +764,8 @@ static void printsub(struct Curl_easy *data,
         break;
       }
     }
+    if(direction)
+      infof(data, "\n");
   }
 }
 
@@ -832,7 +833,7 @@ static CURLcode check_telnet_options(struct Curl_easy *data)
           tn->us_preferred[CURL_TELOPT_NAWS] = CURL_YES;
         else {
           failf(data, "Syntax error in telnet option: %s", head->data);
-          result = CURLE_SETOPT_OPTION_SYNTAX;
+          result = CURLE_TELNET_OPTION_SYNTAX;
           break;
         }
         continue;
@@ -853,7 +854,7 @@ static CURLcode check_telnet_options(struct Curl_easy *data)
       break;
     }
     failf(data, "Syntax error in telnet option: %s", head->data);
-    result = CURLE_SETOPT_OPTION_SYNTAX;
+    result = CURLE_TELNET_OPTION_SYNTAX;
     break;
   }
 
@@ -920,17 +921,12 @@ static void suboption(struct Curl_easy *data)
         size_t tmplen = (strlen(v->data) + 1);
         /* Add the variable only if it fits */
         if(len + tmplen < (int)sizeof(temp)-6) {
-          int rv;
-          char sep[2] = "";
-          varval[0] = 0;
-          rv = sscanf(v->data, "%127[^,]%1[,]%127s", varname, sep, varval);
-          if(rv == 1)
-            len += msnprintf((char *)&temp[len], sizeof(temp) - len,
-                             "%c%s", CURL_NEW_ENV_VAR, varname);
-          else if(rv >= 2)
-            len += msnprintf((char *)&temp[len], sizeof(temp) - len,
-                             "%c%s%c%s", CURL_NEW_ENV_VAR, varname,
-                             CURL_NEW_ENV_VALUE, varval);
+          if(sscanf(v->data, "%127[^,],%127s", varname, varval)) {
+            msnprintf((char *)&temp[len], sizeof(temp) - len,
+                      "%c%s%c%s", CURL_NEW_ENV_VAR, varname,
+                      CURL_NEW_ENV_VALUE, varval);
+            len += tmplen;
+          }
         }
       }
       msnprintf((char *)&temp[len], sizeof(temp) - len,

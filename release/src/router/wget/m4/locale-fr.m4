@@ -1,5 +1,5 @@
-# locale-fr.m4 serial 20
-dnl Copyright (C) 2003, 2005-2021 Free Software Foundation, Inc.
+# locale-fr.m4 serial 19
+dnl Copyright (C) 2003, 2005-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -12,7 +12,8 @@ AC_DEFUN([gt_LOCALE_FR],
   AC_REQUIRE([AC_CANONICAL_HOST])
   AC_REQUIRE([AM_LANGINFO_CODESET])
   AC_CACHE_CHECK([for a traditional french locale], [gt_cv_locale_fr], [
-    AC_LANG_CONFTEST([AC_LANG_SOURCE([[
+    AC_LANG_CONFTEST([AC_LANG_SOURCE([
+changequote(,)dnl
 #include <locale.h>
 #include <time.h>
 #if HAVE_LANGINFO_CODESET
@@ -77,7 +78,8 @@ int main () {
   return 0;
 #endif
 }
-      ]])])
+changequote([,])dnl
+      ])])
     if AC_TRY_EVAL([ac_link]) && test -s conftest$ac_exeext; then
       case "$host_os" in
         # Handle native Windows specially, because there setlocale() interprets
@@ -141,7 +143,8 @@ AC_DEFUN([gt_LOCALE_FR_UTF8],
 [
   AC_REQUIRE([AM_LANGINFO_CODESET])
   AC_CACHE_CHECK([for a french Unicode locale], [gt_cv_locale_fr_utf8], [
-    AC_LANG_CONFTEST([AC_LANG_SOURCE([[
+    AC_LANG_CONFTEST([AC_LANG_SOURCE([
+changequote(,)dnl
 #include <locale.h>
 #include <time.h>
 #if HAVE_LANGINFO_CODESET
@@ -203,7 +206,8 @@ int main () {
 #endif
   return 0;
 }
-      ]])])
+changequote([,])dnl
+      ])])
     if AC_TRY_EVAL([ac_link]) && test -s conftest$ac_exeext; then
       case "$host_os" in
         # Handle native Windows specially, because there setlocale() interprets

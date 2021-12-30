@@ -36,7 +36,6 @@
 #include <assert.h>
 
 #include "umac.h"
-#include "umac-internal.h"
 #include "macros.h"
 
 /* For fat builds */
@@ -47,7 +46,7 @@ _nettle_umac_nh_c (const uint32_t *key, unsigned length, const uint8_t *msg);
 #endif
 
 uint64_t
-_nettle_umac_nh (const uint32_t *key, unsigned length, const uint8_t *msg)
+_umac_nh (const uint32_t *key, unsigned length, const uint8_t *msg)
 {
   uint64_t y;
 

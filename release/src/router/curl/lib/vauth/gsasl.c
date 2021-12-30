@@ -28,6 +28,7 @@
 
 #include <curl/curl.h>
 
+#include "curl_base64.h"
 #include "vauth/vauth.h"
 #include "urldata.h"
 #include "sendf.h"
@@ -93,24 +94,42 @@ CURLcode Curl_auth_gsasl_start(struct Curl_easy *data,
 }
 
 CURLcode Curl_auth_gsasl_token(struct Curl_easy *data,
-                               const struct bufref *chlg,
+                               const char *chlg64,
                                struct gsasldata *gsasl,
-                               struct bufref *out)
+                               char **outptr, size_t *outlen)
 {
+  unsigned char *chlg = NULL;
+  size_t chlglen = 0;
+  CURLcode result = CURLE_OK;
   int res;
   char *response;
-  size_t outlen;
+
+  if(chlg64) {
+    result = Curl_base64_decode(chlg64, &chlg, &chlglen);
+    if(result)
+      return result;
+  }
 
   res = gsasl_step(gsasl->client,
-                   (const char *) Curl_bufref_ptr(chlg), Curl_bufref_len(chlg),
-                   &response, &outlen);
+                   (const char *)chlg, chlglen, &response, outlen);
   if(res != GSASL_OK && res != GSASL_NEEDS_MORE) {
+    if(chlg64)
+      free(chlg);
     failf(data, "GSASL step: %s\n", gsasl_strerror(res));
     return CURLE_BAD_CONTENT_ENCODING;
   }
 
-  Curl_bufref_set(out, response, outlen, gsasl_free);
-  return CURLE_OK;
+  if(*outlen > 0) {
+    result = Curl_base64_encode(data, response, 0, outptr, outlen);
+    gsasl_free(response);
+  }
+  else {
+    *outptr = strdup("");
+    if(!*outptr)
+      result = CURLE_OUT_OF_MEMORY;
+  }
+
+  return result;
 }
 
 void Curl_auth_gsasl_cleanup(struct gsasldata *gsasl)

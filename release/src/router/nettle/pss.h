@@ -34,7 +34,7 @@
 #ifndef NETTLE_PSS_H_INCLUDED
 #define NETTLE_PSS_H_INCLUDED
 
-#include "nettle-meta.h"
+#include "nettle-types.h"
 #include "bignum.h"
 
 #ifdef __cplusplus

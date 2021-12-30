@@ -43,7 +43,6 @@
 
 #include "bignum.h"
 #include "pkcs1.h"
-#include "hogweed-internal.h"
 
 #include "gmp-glue.h"
 

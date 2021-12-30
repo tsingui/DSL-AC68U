@@ -56,7 +56,7 @@ CURLcode Curl_input_digest(struct Curl_easy *data,
     digest = &data->state.digest;
   }
 
-  if(!checkprefix("Digest", header) || !ISSPACE(header[6]))
+  if(!checkprefix("Digest", header))
     return CURLE_BAD_CONTENT_ENCODING;
 
   header += strlen("Digest");
@@ -146,8 +146,7 @@ CURLcode Curl_output_digest(struct Curl_easy *data,
     tmp = strchr((char *)uripath, '?');
     if(tmp) {
       size_t urilen = tmp - (char *)uripath;
-      /* typecast is fine here since the value is always less than 32 bits */
-      path = (unsigned char *) aprintf("%.*s", (int)urilen, uripath);
+      path = (unsigned char *) aprintf("%.*s", urilen, uripath);
     }
   }
   if(!tmp)

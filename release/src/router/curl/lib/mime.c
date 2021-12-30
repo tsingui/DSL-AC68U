@@ -152,14 +152,14 @@ curl_off_t VmsRealFileSize(const char *name,
   FILE * file;
 
   file = fopen(name, FOPEN_READTEXT); /* VMS */
-  if(!file)
+  if(file == NULL)
     return 0;
 
   count = 0;
   ret_stat = 1;
   while(ret_stat > 0) {
     ret_stat = fread(buffer, 1, sizeof(buffer), file);
-    if(ret_stat)
+    if(ret_stat != 0)
       count += ret_stat;
   }
   fclose(file);

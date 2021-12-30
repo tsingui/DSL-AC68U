@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -292,7 +292,7 @@ static void setsock(SockInfo *f, curl_socket_t s, CURL *e, int act,
 /* Initialize a new SockInfo structure */
 static void addsock(curl_socket_t s, CURL *easy, int action, GlobalInfo *g)
 {
-  SockInfo *fdp = (SockInfo*)calloc(1, sizeof(SockInfo));
+  SockInfo *fdp = (SockInfo*)calloc(sizeof(SockInfo), 1);
 
   fdp->global = g;
   setsock(fdp, s, easy, action, g);
@@ -455,9 +455,11 @@ static void clean_fifo(GlobalInfo *g)
 
 int g_should_exit_ = 0;
 
-void sigint_handler(int signo)
+void SignalHandler(int signo)
 {
-  g_should_exit_ = 1;
+  if(signo == SIGINT) {
+    g_should_exit_ = 1;
+  }
 }
 
 int main(int argc, char **argv)
@@ -470,7 +472,7 @@ int main(int argc, char **argv)
   (void)argv;
 
   g_should_exit_ = 0;
-  signal(SIGINT, sigint_handler);
+  signal(SIGINT, SignalHandler);
 
   memset(&g, 0, sizeof(GlobalInfo));
   g.epfd = epoll_create1(EPOLL_CLOEXEC);

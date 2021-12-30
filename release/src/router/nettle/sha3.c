@@ -39,7 +39,6 @@
 #include <string.h>
 
 #include "sha3.h"
-#include "sha3-internal.h"
 
 #include "macros.h"
 #include "memxor.h"
@@ -62,10 +61,10 @@ sha3_absorb (struct sha3_state *state, unsigned length, const uint8_t *data)
 }
 
 unsigned
-_nettle_sha3_update (struct sha3_state *state,
-		     unsigned block_size, uint8_t *block,
-		     unsigned pos,
-		     size_t length, const uint8_t *data)
+_sha3_update (struct sha3_state *state,
+	      unsigned block_size, uint8_t *block,
+	      unsigned pos,
+	      size_t length, const uint8_t *data)
 {
   if (pos > 0)
     {
@@ -91,11 +90,11 @@ _nettle_sha3_update (struct sha3_state *state,
 }
 
 void
-_nettle_sha3_pad (struct sha3_state *state,
-		  unsigned block_size, uint8_t *block, unsigned pos, uint8_t magic)
+_sha3_pad (struct sha3_state *state,
+	   unsigned block_size, uint8_t *block, unsigned pos)
 {
   assert (pos < block_size);
-  block[pos++] = magic;
+  block[pos++] = 6;
 
   memset (block + pos, 0, block_size - pos);
   block[block_size - 1] |= 0x80;

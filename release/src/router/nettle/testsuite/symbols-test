@@ -15,12 +15,9 @@ fi
 #
 # * gcc on x86 generates functions like __i686.get_pc_thunk.bx in pic
 #   code.
-# * LLVM shipped with Xcode/CLT 10+ on macOS builds the symbol
-#   ____chkstk_darwin into the majority of binaries/libraries, including
-#   both the libraries checked here.
 
 ( $NM -g ../libnettle.a || $NM ../libnettle.a ) \
-    | grep ' [DRT] ' | egrep -v '( |^|\.)(\.?_?(_?nettle_)|get_pc_thunk|(_*chkstk_darwin))' \
+    | grep ' [DRT] ' | egrep -v '( |^|\.)(\.?_?(_?nettle_)|get_pc_thunk)' \
     | sort -k3 > test1.out
 
 if [ -s test1.out ] ; then
@@ -30,7 +27,7 @@ if [ -s test1.out ] ; then
 fi
 
 if [ -s ../libhogweed.a ] ; then
-    PATTERN='\.?_?_?nettle_|get_pc_thunk|(_*chkstk_darwin)'
+    PATTERN='\.?_?_?nettle_|get_pc_thunk'
     if grep '^#define.*NETTLE_USE_MINI_GMP.*1$' ../version.h >/dev/null ; then
 	PATTERN="$PATTERN|_?(mp_|mpz_|mpn_)"
     fi

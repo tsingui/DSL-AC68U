@@ -402,7 +402,7 @@ function overHint(itemNum){
 
 			var transform_dblog_service = function() {
 				var dblog_service = parseInt('<% nvram_get("dblog_service"); %>');
-				var dblog_service_mapping = ["", "WiFi", "<#DM_title#>", "<#UPnPMediaServer#>", "AiMesh"];/* untranslated */
+				var dblog_service_mapping = ["", "Wi-Fi", "<#DM_title#>", "<#UPnPMediaServer#>", "AiMesh"];/* untranslated */
 				var dblog_service_text = "";
 				for(var i = 1; dblog_service != 0 && i <= 4; i++) {
 					if(dblog_service & 1) {
@@ -475,7 +475,7 @@ function overHint(itemNum){
 
 	// wifi hw switch
 	if(itemNum == 8){
-		statusmenu = "<div class='StatusHint'>WiFi :</div>";
+		statusmenu = "<div class='StatusHint'>Wi-Fi :</div>";
 		wifiDesc = "<b>&nbsp;2.4G:</b> ";
 		if ( wlan0_radio_flag == 1) {
 			if ((extent_chan_arr[0] == 0) || (extent_chan_arr[0] == undefined) || (extent_chan_arr[0] == control_chan_arr[0]))
@@ -947,7 +947,7 @@ function openHint(hint_array_id, hint_show_id, flag){
 			_caption = "DSL Log";
 		}		
 		else if(hint_show_id == 5){
-			statusmenu = "<span class='StatusClickHint' onclick='gotocooler();' onmouseout='this.className=\"StatusClickHint\"' onmouseover='this.className=\"StatusClickHint_mouseover\"'><#fan_tuning#></span>";
+			statusmenu = "<span class='StatusClickHint' onclick='gotocooler();' onmouseout='this.className=\"StatusClickHint\"' onmouseover='this.className=\"StatusClickHint_mouseover\"'>Go to Fan tuning</span>";
 			_caption = "Perfomance Tuning";
 		}
 		else if(hint_show_id == 4){
@@ -2632,23 +2632,10 @@ function check_common_string(pwd, flag){
 
 // ---------- Viz add for pwd strength check [Start] 2012.12 -----
 
-function chkPass(pwd, flag, obj, id) {
+function chkPass(pwd, flag) {
 	var orig_pwd = "";
-	var postfix = (id == undefined)? "": ("_" + id);
-	var oScorebarBorder = document.getElementById("scorebarBorder"+postfix);
-	var oScorebar = document.getElementById("scorebar"+postfix);
-	var oScore = document.getElementById("score"+postfix);
-
-	if(obj != undefined){
-		oScorebarBorder = $(obj)[0];
-		oScorebar = $(obj).find(".strength_color")[0];
-		oScore =$(obj).find(".strength_text")[0];
-	}
-
-	if(flag == 'http_passwd' && (is_KR_sku || is_SG_sku || is_AA_sku)){
-		oScorebar.style.display = "none";
-		return;
-	}
+	var oScorebar = document.getElementById("scorebar");
+	var oScore = document.getElementById("score");
 
 	// Simultaneous variable declaration and value assignment aren't supported in IE apparently
 	// so I'm forced to assign the same value individually per var to support a crappy browser *sigh* 
@@ -2811,8 +2798,8 @@ function chkPass(pwd, flag, obj, id) {
 		
 		/* Determine complexity based on overall score */
 		if (nScore > 100) { nScore = 100; } else if (nScore < 0) { nScore = 0; }
-		if(typeof document.forms[0] == "undefined" || (typeof document.forms[0] != "undefined" && document.form.current_page.value != "AiProtection_HomeProtection.asp")){
-			if (nScore >= 0 && nScore < 20) { sComplexity = "<#AiProtection_scan_rDanger#>"; }
+		if(document.form.current_page.value != "AiProtection_HomeProtection.asp"){	
+			if (nScore >= 0 && nScore < 20) { sComplexity = "<#PASS_score0#>"; }
 			else if (nScore >= 20 && nScore < 40) { sComplexity = "<#PASS_score1#>"; }
 			else if (nScore >= 40 && nScore < 60) { sComplexity = "<#PASS_score2#>"; }
 			else if (nScore >= 60 && nScore < 80) { sComplexity = "<#PASS_score3#>"; }
@@ -2827,16 +2814,16 @@ function chkPass(pwd, flag, obj, id) {
 		}
 		
 		/* Display updated score criteria to client */
-		if(typeof document.forms[0] == "undefined" || (typeof document.forms[0] != "undefined" && document.form.current_page.value != "AiProtection_HomeProtection.asp")){		//for Router weakness status, Jimeing added at 2014/06/07
-			oScorebarBorder.style.display = "flex";
+		if(document.form.current_page.value != "AiProtection_HomeProtection.asp"){		//for Router weakness status, Jimeing added at 2014/06/07
+			document.getElementById('scorebarBorder').style.display = "";
 			oScorebar.style.backgroundPosition = "-" + parseInt(nScore * 4) + "px";
 		}
 		else{
 			if(nScore >= 0 && nScore < 40){
-				oScore.className = "status_no";
+				document.getElementById('score').className = "status_no";			
 			}
 			else if(nScore >= 40 && nScore <= 100){
-				oScore.className = "status_yes";
+				document.getElementById('score').className = "status_yes";		
 			}
 		}
 		
@@ -2847,8 +2834,6 @@ function chkPass(pwd, flag, obj, id) {
 		if(flag == 'http_passwd'){
 			chkPass(" ", 'http_passwd');
 		}
-		else
-			chkPass(" ", "", obj, id);
 	}
 }
 

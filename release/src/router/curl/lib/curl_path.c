@@ -48,7 +48,7 @@ CURLcode Curl_getworkingpath(struct Curl_easy *data,
   /* Check for /~/, indicating relative to the user's home directory */
   if(data->conn->handler->protocol & CURLPROTO_SCP) {
     real_path = malloc(working_path_len + 1);
-    if(!real_path) {
+    if(real_path == NULL) {
       free(working_path);
       return CURLE_OUT_OF_MEMORY;
     }
@@ -62,7 +62,7 @@ CURLcode Curl_getworkingpath(struct Curl_easy *data,
     if((working_path_len > 1) && (working_path[1] == '~')) {
       size_t homelen = strlen(homedir);
       real_path = malloc(homelen + working_path_len + 1);
-      if(!real_path) {
+      if(real_path == NULL) {
         free(working_path);
         return CURLE_OUT_OF_MEMORY;
       }
@@ -78,7 +78,7 @@ CURLcode Curl_getworkingpath(struct Curl_easy *data,
     }
     else {
       real_path = malloc(working_path_len + 1);
-      if(!real_path) {
+      if(real_path == NULL) {
         free(working_path);
         return CURLE_OUT_OF_MEMORY;
       }
@@ -130,7 +130,7 @@ CURLcode Curl_get_pathname(const char **cpp, char **path, char *homedir)
   /* Allocate enough space for home directory and filename + separator */
   fullPathLength = strlen(cp) + strlen(homedir) + 2;
   *path = malloc(fullPathLength);
-  if(!*path)
+  if(*path == NULL)
     return CURLE_OUT_OF_MEMORY;
 
   /* Check for quoted filenames */
@@ -169,7 +169,7 @@ CURLcode Curl_get_pathname(const char **cpp, char **path, char *homedir)
   else {
     /* Read to end of filename - either to whitespace or terminator */
     end = strpbrk(cp, WHITESPACE);
-    if(!end)
+    if(end == NULL)
       end = strchr(cp, '\0');
     /* return pointer to second parameter if it exists */
     *cpp = end + strspn(end, WHITESPACE);

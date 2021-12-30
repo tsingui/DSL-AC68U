@@ -1,6 +1,6 @@
 /* Provide a more complete sys/time.h.
 
-   Copyright (C) 2007-2021 Free Software Foundation, Inc.
+   Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -112,12 +112,8 @@ _GL_CXXALIASWARN (gettimeofday);
 # if defined __cplusplus && defined GNULIB_NAMESPACE
 namespace GNULIB_NAMESPACE {
   typedef ::timeval
-#  undef timeval
+#undef timeval
     timeval;
-#  if @REPLACE_STRUCT_TIMEVAL@
-#   define timeval rpl_timeval
-  typedef ::timeval timeval;
-#  endif
 }
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -135,7 +131,7 @@ _GL_WARN_ON_USE (gettimeofday, "gettimeofday is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef close
 #   define close close_used_without_including_unistd_h
-#  elif !defined __clang__
+#  else
      _GL_WARN_ON_USE (close,
                       "close() used without including <unistd.h>");
 #  endif

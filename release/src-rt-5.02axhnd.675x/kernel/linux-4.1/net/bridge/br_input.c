@@ -25,14 +25,14 @@
 #include <linux/blog.h>
 #endif
 #if defined(CONFIG_BCM_KF_WL)
-#if defined(PKTC)  || defined(PKTC_TBL)
+#if defined(PKTC)
 #include <osl.h>
 #include <wl_pktc.h>
 unsigned long (*wl_pktc_req_hook)(int req_id, unsigned long param0, unsigned long param1, unsigned long param2) = NULL;
 EXPORT_SYMBOL(wl_pktc_req_hook);
 unsigned long (*dhd_pktc_req_hook)(int req_id, unsigned long param0, unsigned long param1, unsigned long param2) = NULL;
 EXPORT_SYMBOL(dhd_pktc_req_hook);
-#endif /* defined(PKTC)  || defined(PKTC_TBL) */
+#endif /* PKTC */
 #include <linux/bcm_skb_defines.h>
 #endif
 
@@ -269,7 +269,7 @@ int br_handle_frame_finish(struct sock *sk, struct sk_buff *skb)
 
 		blog_unlock();
 
-#if defined(PKTC)  || defined(PKTC_TBL)
+#if defined(PKTC)
 		/* wlan pktc */
 		if ((dst != NULL) && (dst->dst != NULL) && (!dst->is_local)) {
 #if defined(CONFIG_BCM_KF_WL)
@@ -343,7 +343,12 @@ int br_handle_frame_finish(struct sock *sk, struct sk_buff *skb)
 			 * Get the root dest device and make sure that we 
 			 * are always transmitting to a root device */
 
-				struct net_device *dst_dev_p = dst->dst->dev;
+				struct net_device *root_dst_dev_p = dst->dst->dev;
+				/* Get the root destination device */
+				while (!netdev_path_is_root(root_dst_dev_p)) {
+					root_dst_dev_p = netdev_path_next_dev(root_dst_dev_p);
+				}
+ 
 				/* Update chaining table for DHD on the wl to switch direction only */
 				if ( (    from_wl_to_switch
 #if defined(CONFIG_BCM947189)
@@ -354,14 +359,14 @@ int br_handle_frame_finish(struct sock *sk, struct sk_buff *skb)
 				{
 					dhd_pktc_req_hook(PKTC_TBL_UPDATE,
 								     (unsigned long)&(dst->addr.addr[0]),
-								     (unsigned long)dst_dev_p, 0);
+								     (unsigned long)root_dst_dev_p, 0);
 				}
 			 
 			 	/* Update chaining table for WL (NIC driver) */
 				chainIdx = wl_pktc_req_hook ? 
 								wl_pktc_req_hook(PKTC_TBL_UPDATE,
 								     (unsigned long)&(dst->addr.addr[0]),
-								     (unsigned long)dst_dev_p, 0) : PKTC_INVALID_CHAIN_IDX;
+								     (unsigned long)root_dst_dev_p, 0) : PKTC_INVALID_CHAIN_IDX;
 				if (chainIdx != PKTC_INVALID_CHAIN_IDX) {
 					/* Update chainIdx in blog
 					 * chainEntry->tx_dev will always be NOT 
@@ -389,7 +394,7 @@ int br_handle_frame_finish(struct sock *sk, struct sk_buff *skb)
 #endif
 		}
 next:
-#endif /* defined(PKTC)  || defined(PKTC_TBL) */
+#endif /* PKTC */
 		if ((p->flags & BR_ISOLATE_MODE) || ((dst != NULL) && dst->is_local)) {
 			skb2 = skb;
 			/* Do not forward the packet since it's local. */

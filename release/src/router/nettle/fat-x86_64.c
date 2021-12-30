@@ -52,7 +52,6 @@ struct x86_features
 {
   enum x86_vendor { X86_OTHER, X86_INTEL, X86_AMD } vendor;
   int have_aesni;
-  int have_sha_ni;
 };
 
 #define SKIP(s, slen, literal, llen)				\
@@ -67,7 +66,6 @@ get_x86_features (struct x86_features *features)
   const char *s;
   features->vendor = X86_OTHER;
   features->have_aesni = 0;
-  features->have_sha_ni = 0;
 
   s = secure_getenv (ENV_OVERRIDE);
   if (s)
@@ -86,11 +84,9 @@ get_x86_features (struct x86_features *features)
 	  }
 	else if (MATCH (s, length, "aesni", 5))
 	  features->have_aesni = 1;
-	else if (MATCH (s, length, "sha_ni", 6))
-	  features->have_sha_ni = 1;
 	if (!sep)
 	  break;
-	s = sep + 1;
+	s = sep + 1;	
       }
   else
     {
@@ -103,11 +99,7 @@ get_x86_features (struct x86_features *features)
 
       _nettle_cpuid (1, cpuid_data);
       if (cpuid_data[2] & 0x02000000)
-       features->have_aesni = 1;
-
-      _nettle_cpuid (7, cpuid_data);
-      if (cpuid_data[1] & 0x20000000)
-       features->have_sha_ni = 1;
+	features->have_aesni = 1;      
     }
 }
 
@@ -122,14 +114,6 @@ DECLARE_FAT_FUNC_VAR(aes_decrypt, aes_crypt_internal_func, aesni)
 DECLARE_FAT_FUNC(nettle_memxor, memxor_func)
 DECLARE_FAT_FUNC_VAR(memxor, memxor_func, x86_64)
 DECLARE_FAT_FUNC_VAR(memxor, memxor_func, sse2)
-
-DECLARE_FAT_FUNC(nettle_sha1_compress, sha1_compress_func)
-DECLARE_FAT_FUNC_VAR(sha1_compress, sha1_compress_func, x86_64)
-DECLARE_FAT_FUNC_VAR(sha1_compress, sha1_compress_func, sha_ni)
-
-DECLARE_FAT_FUNC(_nettle_sha256_compress, sha256_compress_func)
-DECLARE_FAT_FUNC_VAR(sha256_compress, sha256_compress_func, x86_64)
-DECLARE_FAT_FUNC_VAR(sha256_compress, sha256_compress_func, sha_ni)
 
 /* This function should usually be called only once, at startup. But
    it is idempotent, and on x86, pointer updates are atomic, so
@@ -151,10 +135,9 @@ fat_init (void)
     {
       const char * const vendor_names[3] =
 	{ "other", "intel", "amd" };
-      fprintf (stderr, "libnettle: cpu features: vendor:%s%s%s\n",
+      fprintf (stderr, "libnettle: cpu features: vendor:%s%s\n",
 	       vendor_names[features.vendor],
-	       features.have_aesni ? ",aesni" : "",
-	       features.have_sha_ni ? ",sha_ni" : "");
+	       features.have_aesni ? ",aesni" : "");
     }
   if (features.have_aesni)
     {
@@ -171,20 +154,6 @@ fat_init (void)
       _nettle_aes_decrypt_vec = _nettle_aes_decrypt_x86_64;
     }
 
-  if (features.have_sha_ni)
-    {
-      if (verbose)
-	fprintf (stderr, "libnettle: using sha_ni instructions.\n");
-      nettle_sha1_compress_vec = _nettle_sha1_compress_sha_ni;
-      _nettle_sha256_compress_vec = _nettle_sha256_compress_sha_ni;
-    }
-  else
-    {
-      if (verbose)
-	fprintf (stderr, "libnettle: not using sha_ni instructions.\n");
-      nettle_sha1_compress_vec = _nettle_sha1_compress_x86_64;
-      _nettle_sha256_compress_vec = _nettle_sha256_compress_x86_64;
-    }
   if (features.vendor == X86_INTEL)
     {
       if (verbose)
@@ -216,11 +185,3 @@ DEFINE_FAT_FUNC(_nettle_aes_decrypt, void,
 DEFINE_FAT_FUNC(nettle_memxor, void *,
 		(void *dst, const void *src, size_t n),
 		(dst, src, n))
-
-DEFINE_FAT_FUNC(nettle_sha1_compress, void,
-		(uint32_t *state, const uint8_t *input),
-		(state, input))
-
-DEFINE_FAT_FUNC(_nettle_sha256_compress, void,
-		(uint32_t *state, const uint8_t *input, const uint32_t *k),
-		(state, input, k))

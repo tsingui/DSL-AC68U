@@ -20,9 +20,6 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <sys/param.h>
-#if defined(RTCONFIG_HND_ROUTER_AX_6756)
-#include <sys/sysmacros.h>
-#endif
 
 #include "libudev.h"
 #include "libudev-private.h"

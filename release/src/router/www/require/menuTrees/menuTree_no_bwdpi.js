@@ -55,9 +55,9 @@ define(function(){
 				index: "menu_GuestNetwork",
 				tab: [
 					{url: "Guest_network.asp", tabName: "<#Guest_Network#>"},
-					{url: "Captive_Portal.asp", tabName: "Free WiFi"},
+					{url: "Captive_Portal.asp", tabName: "Free Wi-Fi"},
 					{url: "Captive_Portal_Advanced.asp", tabName: "<#Captive_Portal#>"},
-					{url: "Guest_network_fbwifi.asp", tabName: "Facebook WiFi"},
+					{url: "Guest_network_fbwifi.asp", tabName: "Facebook Wi-Fi"},
 					{url: "NULL", tabName: "__INHERIT__"}
 				]
 			},
@@ -74,7 +74,6 @@ define(function(){
 					{url: "Main_TrafficMonitor_devrealtime.asp", tabName: "__INHERIT__"},
 					{url: "Main_TrafficMonitor_devdaily.asp", tabName: "__INHERIT__"},
 					{url: "Main_TrafficMonitor_devmonthly.asp", tabName: "__INHERIT__"},
-					{url: "AdaptiveQoS_InternetSpeed.asp", tabName: "<#InternetSpeed#>"},
 					{url: "AdaptiveQoS_ROG.asp", tabName: "<table style='margin-top:-7px;'><tr><td><img src='/images/ROG_Logo.png' style='border:0px;width:32px;'></td><td>ROG First</td></tr></table>"}, 
 					{url: "Main_Spectrum_Content.asp", tabName: "<#Spectrum_title#>"},
 					{url: "AdaptiveQoS_TrafficLimiter.asp", tabName: "Traffic Limiter"},
@@ -94,8 +93,7 @@ define(function(){
 				menuName: "<#Parental_Control#>",
 				index: "menu_ParentalControl", 
 				tab: [
-					{url: "AiProtection_WebProtector.asp", tabName: "<#AiProtection_filter#>"},
-					{url: "ParentalControl.asp", tabName: "<#Time_Scheduling#>"},
+					{url: "ParentalControl.asp", tabName: "<#Parental_Control#>"},
 					{url: "YandexDNS.asp", tabName: "<#YandexDNS#>"},
 					{url: "NULL", tabName: "__INHERIT__"}
 				] 
@@ -184,7 +182,7 @@ define(function(){
 				tab: [
 					{url: "Advanced_LAN_Content.asp", tabName: "<#menu5_2_1#>"},
 					{url: "Advanced_DHCP_Content.asp", tabName: "<#menu5_2_2#>"},
-					//{url: "DNSFilter.asp", tabName: "DNSFilter"},
+					{url: "DNSFilter.asp", tabName: "DNSFilter"},
 					{url: "Advanced_MultiSubnet_Content.asp", tabName: "<#menu5_2_2#>"},
 					{url: "Advanced_GWStaticRoute_Content.asp", tabName: "<#menu5_2_3#>"},
 					{url: "Advanced_IPTV_Content.asp", tabName: "IPTV"},
@@ -229,7 +227,7 @@ define(function(){
 					{url: "Advanced_OpenVPNClient_Content.asp", tabName: (vpn_fusion_support) ? "<#VPN_Fusion#>" : "<#vpnc_title#>"},
 					{url: "Advanced_VPNClient_Content.asp", tabName: "__INHERIT__"},
 					{url: "Advanced_TOR_Content.asp", tabName: "TOR"},
-					{url: "Advanced_Instant_Guard.asp", tabName: "<#Instant_Guard_title#>"},
+					{url: "Advanced_Instant_Guard.asp", tabName: "Instant Guard"},/*untranslated*/
 					{url: "NULL", tabName: "__INHERIT__"}
 				]
 			},		
@@ -350,7 +348,7 @@ define(function(){
 					retArray.push("menu_GameBoost");
 				}
 
-				if(!tencent_qmacc_support || !isSwMode("rt"))
+				if(!tencent_qmacc_support)
 					retArray.push("menu_TencentAcceleration");
 
 				if(!uu_support){
@@ -382,7 +380,6 @@ define(function(){
 					retArray.push("menu_VPN");
 					retArray.push("menu_VLAN");
 					retArray.push("menu_Firewall");
-					retArray.push("menu_ParentalControl");
 					retArray.push("menu_Wireless");
 				}
 				else if(isSwMode("ap")){
@@ -397,7 +394,6 @@ define(function(){
 					retArray.push("menu_VPN");
 					retArray.push("menu_VLAN");
 					retArray.push("menu_Firewall");
-					retArray.push("menu_ParentalControl");
 				}
 				else if(isSwMode("mb")){
 					retArray.push("menu_ParentalControl");
@@ -413,7 +409,6 @@ define(function(){
 					retArray.push("menu_VPN");
 					retArray.push("menu_VLAN");
 					retArray.push("menu_Firewall");
-					retArray.push("menu_ParentalControl");
 				}
 				else if(isSwMode("ew")){
 					retArray.push("menu_ParentalControl");
@@ -428,7 +423,6 @@ define(function(){
 					retArray.push("menu_VPN");
 					retArray.push("menu_VLAN");
 					retArray.push("menu_Firewall");
-					retArray.push("menu_ParentalControl");
 
 					if(!concurrep_support){
 						retArray.push("menu_Wireless");
@@ -588,7 +582,7 @@ define(function(){
 					retArray.push("GameBoost.asp");
 				}
 
-				if(!tencent_qmacc_support || !isSwMode("rt"))
+				if(!tencent_qmacc_support)
 					retArray.push("GameBoost_Tencent.asp");
 
 				if(!IPv6_support){
@@ -650,9 +644,6 @@ define(function(){
 				if(!fileflex_support)
 					retArray.push("fileflex.asp");
 
-				if(!dnsfilter_support)
-					retArray.push("DNSFilter.asp");
-
 				/* Operation Mode */
 				if(isSwMode("re") || isSwMode("ew")){
 					retArray.push("GameBoost.asp");
@@ -667,7 +658,6 @@ define(function(){
 					retArray.push("Main_IPTStatus_Content.asp");
 					retArray.push("Main_ConnStatus_Content.asp");
 					retArray.push("Advanced_Smart_Connect.asp");
-					retArray.push("DNSFilter.asp");
 
 					if(!concurrep_support){
 						retArray.push("Advanced_Wireless_Content.asp");
@@ -729,15 +719,10 @@ define(function(){
 				}
 				else if(based_modelid == "RT-AC87U" && '<% nvram_get("wl_unit"); %>' == '1'){
 					retArray.push("Advanced_WSecurity_Content.asp");
-					retArray.push("DNSFilter.asp");
 				}
 				else if(based_modelid == "RT-N300"){
 					retArray.push("Advanced_WMode_Content.asp");
 					retArray.push("Advanced_IPTV_Content.asp");
-				}
-
-				if(!internetSpeed_support && !internetSpeed_lite_support){
-					retArray.push("AdaptiveQoS_InternetSpeed.asp");
 				}
 
 				return retArray;

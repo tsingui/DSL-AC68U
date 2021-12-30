@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Free Software Foundation, Inc.
+ * Copyright(c) 2017-2018 Free Software Foundation, Inc.
  *
  * This file is part of GNU Wget.
  *
@@ -72,17 +72,23 @@ FILE *fopen_wgetrc(const char *pathname, const char *mode)
 void exit_wget(int status)
 {
 }
+#else
+void exit(int status)
+{
+}
 #endif
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
    struct urlpos *urls;
    struct file_memory fm;
+   FILE *bak;
 
    if (size > 4096) // same as max_len = ... in .options file
 		return 0;
 
-	CLOSE_STDERR
+	bak = stderr;
+	stderr = fopen("/dev/null", "w");
 
    fm.content = (char *) data;
    fm.length = size;
@@ -91,7 +97,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
    urls = get_urls_html_fm("xxx", &fm, "https://x.y", NULL, NULL);
 	free_urlpos(urls);
 
-	RESTORE_STDERR
+	fclose(stderr);
+	stderr = bak;
 
 	return 0;
 }

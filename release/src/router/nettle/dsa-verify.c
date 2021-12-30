@@ -38,7 +38,6 @@
 #include <stdlib.h>
 
 #include "dsa.h"
-#include "dsa-internal.h"
 
 #include "bignum.h"
 
@@ -78,7 +77,7 @@ dsa_verify(const struct dsa_params *params,
   mpz_init(v);
 
   /* The message digest */
-  _nettle_dsa_hash (tmp, mpz_sizeinbase (params->q, 2), digest_size, digest);
+  _dsa_hash (tmp, mpz_sizeinbase (params->q, 2), digest_size, digest);
   
   /* v = g^{w * h (mod q)} (mod p)  */
   mpz_mul(tmp, tmp, w);

@@ -3,7 +3,6 @@ Arg: <key>
 Protocols: SFTP SCP
 Help: SSH Public key file name
 Category: sftp scp auth
-Example: --pubkey file.pub sftp://example.com/
 ---
 Public key file name. Allows you to provide your public key in this separate
 file.

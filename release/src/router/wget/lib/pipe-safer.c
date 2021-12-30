@@ -1,5 +1,5 @@
 /* Invoke pipe, but avoid some glitches.
-   Copyright (C) 2005-2006, 2009-2021 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 int
 pipe_safer (int fd[2])
 {
+#if HAVE_PIPE
   if (pipe (fd) == 0)
     {
       int i;
@@ -38,15 +39,18 @@ pipe_safer (int fd[2])
           fd[i] = fd_safer (fd[i]);
           if (fd[i] < 0)
             {
-              int saved_errno = errno;
+              int e = errno;
               close (fd[1 - i]);
-              errno = saved_errno;
+              errno = e;
               return -1;
             }
         }
 
       return 0;
     }
+#else
+  errno = ENOSYS;
+#endif
 
   return -1;
 }

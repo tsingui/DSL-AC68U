@@ -3,7 +3,6 @@ Short: u
 Arg: <user:password>
 Help: Server user and password
 Category: important auth
-Example: -u user:secret $URL
 ---
 Specify the user name and password to use for server authentication. Overrides
 --netrc and --netrc-optional.

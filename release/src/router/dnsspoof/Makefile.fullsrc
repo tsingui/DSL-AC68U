@@ -18,12 +18,12 @@ dynamic: all install
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-ifeq ($(wildcard ./prebuilt/dnsspoof),)
+ifneq ($(PREBUILT_BCMBIN),1)
 dnsspoof: dnsspoof.o
 	$(CC) $(CFLAGS) -o dnsspoof dnsspoof.o
 else
 dnsspoof: 
-	-cp -f ./prebuilt/dnsspoof ./
+	-cp -f $(TOP)/$(shell pwd | sed 's/\(.*router\/\)//')/$(PRBM_DIR)/$@ ./
 endif
 
 

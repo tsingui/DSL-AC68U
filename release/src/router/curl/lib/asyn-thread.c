@@ -68,6 +68,7 @@
 #include "hostip.h"
 #include "hash.h"
 #include "share.h"
+#include "strerror.h"
 #include "url.h"
 #include "multiif.h"
 #include "inet_ntop.h"
@@ -237,7 +238,7 @@ int init_thread_sync_data(struct thread_data *td,
 #endif
 
   tsd->mtx = malloc(sizeof(curl_mutex_t));
-  if(!tsd->mtx)
+  if(tsd->mtx == NULL)
     goto err_exit;
 
   Curl_mutex_init(tsd->mtx);
@@ -304,7 +305,7 @@ static unsigned int CURL_STDCALL getaddrinfo_thread(void *arg)
 
   rc = Curl_getaddrinfo_ex(tsd->hostname, service, &tsd->hints, &tsd->res);
 
-  if(rc) {
+  if(rc != 0) {
     tsd->sock_error = SOCKERRNO?SOCKERRNO:rc;
     if(tsd->sock_error == 0)
       tsd->sock_error = RESOLVER_ENOMEM;
@@ -700,9 +701,24 @@ struct Curl_addrinfo *Curl_resolver_getaddrinfo(struct Curl_easy *data,
   *waitp = 0; /* default to synchronous response */
 
 #ifdef CURLRES_IPV6
-  if(Curl_ipv6works(data))
-    /* The stack seems to be IPv6-enabled */
+  /*
+   * Check if a limited name resolve has been requested.
+   */
+  switch(data->set.ipver) {
+  case CURL_IPRESOLVE_V4:
+    pf = PF_INET;
+    break;
+  case CURL_IPRESOLVE_V6:
+    pf = PF_INET6;
+    break;
+  default:
     pf = PF_UNSPEC;
+    break;
+  }
+
+  if((pf != PF_INET) && !Curl_ipv6works(data))
+    /* The stack seems to be a non-IPv6 one */
+    pf = PF_INET;
 #endif /* CURLRES_IPV6 */
 
   memset(&hints, 0, sizeof(hints));

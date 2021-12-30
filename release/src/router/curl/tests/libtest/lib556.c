@@ -92,10 +92,10 @@ int test(char *URL)
             break;
         }
 
-      } while((res == CURLE_OK && iolen) || (res == CURLE_AGAIN));
+      } while((res == CURLE_OK && iolen != 0) || (res == CURLE_AGAIN));
     }
 
-    if(iolen)
+    if(iolen != 0)
       res = (CURLcode)TEST_ERR_FAILURE;
   }
 

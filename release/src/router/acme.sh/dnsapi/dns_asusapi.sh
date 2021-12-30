@@ -28,7 +28,6 @@ dns_asusapi_add() {
 add_record() {
   _info "Adding record"
 
-  rm -f /var/cache/inadyn/*.cache
   service start_ddns
 
   cnt="20"

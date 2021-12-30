@@ -30,7 +30,6 @@
 */
 
 #include "testutils.h"
-#include "version.h"
 
 void
 test_main (void)

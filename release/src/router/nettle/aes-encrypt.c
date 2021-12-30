@@ -36,7 +36,6 @@
 #endif
 
 #include <assert.h>
-#include <stdlib.h>
 
 #include "aes-internal.h"
 
@@ -48,19 +47,9 @@ aes_encrypt(const struct aes_ctx *ctx,
 	    size_t length, uint8_t *dst,
 	    const uint8_t *src)
 {
-  switch (ctx->key_size)
-    {
-    default: abort();
-    case AES128_KEY_SIZE:
-      aes128_encrypt(&ctx->u.ctx128, length, dst, src);
-      break;
-    case AES192_KEY_SIZE:
-      aes192_encrypt(&ctx->u.ctx192, length, dst, src);
-      break;
-    case AES256_KEY_SIZE:
-      aes256_encrypt(&ctx->u.ctx256, length, dst, src);
-      break;
-    }
+  assert(!(length % AES_BLOCK_SIZE) );
+  _aes_encrypt(ctx->rounds, ctx->keys, &_aes_encrypt_table,
+	       length, dst, src);
 }
 
 void
@@ -69,8 +58,8 @@ aes128_encrypt(const struct aes128_ctx *ctx,
 	       const uint8_t *src)
 {
   assert(!(length % AES_BLOCK_SIZE) );
-  _nettle_aes_encrypt(_AES128_ROUNDS, ctx->keys, &_nettle_aes_encrypt_table,
-		      length, dst, src);
+  _aes_encrypt(_AES128_ROUNDS, ctx->keys, &_aes_encrypt_table,
+	       length, dst, src);
 }
 
 void
@@ -79,8 +68,8 @@ aes192_encrypt(const struct aes192_ctx *ctx,
 	       const uint8_t *src)
 {
   assert(!(length % AES_BLOCK_SIZE) );
-  _nettle_aes_encrypt(_AES192_ROUNDS, ctx->keys, &_nettle_aes_encrypt_table,
-		      length, dst, src);
+  _aes_encrypt(_AES192_ROUNDS, ctx->keys, &_aes_encrypt_table,
+	       length, dst, src);
 }
 
 void
@@ -89,6 +78,6 @@ aes256_encrypt(const struct aes256_ctx *ctx,
 	       const uint8_t *src)
 {
   assert(!(length % AES_BLOCK_SIZE) );
-  _nettle_aes_encrypt(_AES256_ROUNDS, ctx->keys, &_nettle_aes_encrypt_table,
-		      length, dst, src);
+  _aes_encrypt(_AES256_ROUNDS, ctx->keys, &_aes_encrypt_table,
+	       length, dst, src);
 }

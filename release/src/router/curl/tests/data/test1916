@@ -33,7 +33,7 @@ MQTT PUBLISH with no POSTFIELDSIZE set
 lib%TESTNUMBER
 </tool>
 <command option="binary-trace">
-"mqtt://%HOSTIP:%MQTTPORT/%20"
+"mqtt://%HOSTIP:%MQTTPORT/ "
 </command>
 </client>
 

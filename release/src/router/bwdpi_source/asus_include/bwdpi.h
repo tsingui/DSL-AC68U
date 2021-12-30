@@ -134,7 +134,6 @@ enum{
 };
 
 //dpi.c
-extern int is_sig_wrs_models_aqos();
 extern int is_sig_wrs_models();
 extern int check_tdts_module_exist();
 
@@ -161,4 +160,4 @@ extern int bwdpi_client_info(char *MAC, char *ipaddr, bwdpi_device *device);
 extern void redirect_page_status(int cat_id, int *retval, webs_t wp);
 
 //iqos.c
-extern void AppRuleModify(char *in, char *key, char *out);
+extern void AppRuleModify(char *in, int key, char *out);

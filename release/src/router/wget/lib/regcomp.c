@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2021 Free Software Foundation, Inc.
+   Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -233,7 +233,9 @@ re_compile_pattern (const char *pattern, size_t length,
     return NULL;
   return gettext (__re_error_msgid + __re_error_msgid_idx[(int) ret]);
 }
+#ifdef _LIBC
 weak_alias (__re_compile_pattern, re_compile_pattern)
+#endif
 
 /* Set by 're_set_syntax' to the current regexp syntax to recognize.  Can
    also be assigned to arbitrarily: each pattern buffer stores its own
@@ -258,7 +260,9 @@ re_set_syntax (reg_syntax_t syntax)
   re_syntax_options = syntax;
   return ret;
 }
+#ifdef _LIBC
 weak_alias (__re_set_syntax, re_set_syntax)
+#endif
 
 int
 re_compile_fastmap (struct re_pattern_buffer *bufp)
@@ -277,7 +281,9 @@ re_compile_fastmap (struct re_pattern_buffer *bufp)
   bufp->fastmap_accurate = 1;
   return 0;
 }
+#ifdef _LIBC
 weak_alias (__re_compile_fastmap, re_compile_fastmap)
+#endif
 
 static inline void
 __attribute__ ((always_inline))
@@ -458,7 +464,7 @@ re_compile_fastmap_iter (regex_t *bufp, const re_dfastate_t *init_state,
    the return codes and their meanings.)  */
 
 int
-regcomp (regex_t *__restrict preg, const char *__restrict pattern, int cflags)
+regcomp (regex_t *_Restrict_ preg, const char *_Restrict_ pattern, int cflags)
 {
   reg_errcode_t ret;
   reg_syntax_t syntax = ((cflags & REG_EXTENDED) ? RE_SYNTAX_POSIX_EXTENDED
@@ -509,14 +515,16 @@ regcomp (regex_t *__restrict preg, const char *__restrict pattern, int cflags)
 
   return (int) ret;
 }
+#ifdef _LIBC
 libc_hidden_def (__regcomp)
 weak_alias (__regcomp, regcomp)
+#endif
 
 /* Returns a message corresponding to an error code, ERRCODE, returned
    from either regcomp or regexec.   We don't use PREG here.  */
 
 size_t
-regerror (int errcode, const regex_t *__restrict preg, char *__restrict errbuf,
+regerror (int errcode, const regex_t *_Restrict_ preg, char *_Restrict_ errbuf,
 	  size_t errbuf_size)
 {
   const char *msg;
@@ -547,7 +555,9 @@ regerror (int errcode, const regex_t *__restrict preg, char *__restrict errbuf,
 
   return msg_size;
 }
+#ifdef _LIBC
 weak_alias (__regerror, regerror)
+#endif
 
 
 #ifdef RE_ENABLE_I18N
@@ -558,7 +568,7 @@ weak_alias (__regerror, regerror)
 static const bitset_t utf8_sb_map =
 {
   /* Set the first 128 bits.  */
-# if (defined __GNUC__ || __clang_major__ >= 4) && !defined __STRICT_ANSI__
+# if defined __GNUC__ && !defined __STRICT_ANSI__
   [0 ... 0x80 / BITSET_WORD_BITS - 1] = BITSET_WORD_MAX
 # else
 #  if 4 * BITSET_WORD_BITS < ASCII_CHARS
@@ -647,8 +657,10 @@ regfree (regex_t *preg)
   re_free (preg->translate);
   preg->translate = NULL;
 }
+#ifdef _LIBC
 libc_hidden_def (__regfree)
 weak_alias (__regfree, regfree)
+#endif
 
 /* Entry points compatible with 4.2 BSD regex library.  We don't define
    them unless specifically requested.  */
@@ -1436,7 +1448,7 @@ link_nfa_nodes (void *extra, bin_tree_t *node)
       break;
 
     case END_OF_RE:
-      DEBUG_ASSERT (node->next == NULL);
+      assert (node->next == NULL);
       break;
 
     case OP_DUP_ASTERISK:
@@ -1452,8 +1464,8 @@ link_nfa_nodes (void *extra, bin_tree_t *node)
 	  right = node->right->first->node_idx;
 	else
 	  right = node->next->node_idx;
-	DEBUG_ASSERT (left > -1);
-	DEBUG_ASSERT (right > -1);
+	assert (left > -1);
+	assert (right > -1);
 	err = re_node_set_init_2 (dfa->edests + idx, left, right);
       }
       break;
@@ -1471,7 +1483,7 @@ link_nfa_nodes (void *extra, bin_tree_t *node)
       break;
 
     default:
-      DEBUG_ASSERT (!IS_EPSILON_NODE (node->token.type));
+      assert (!IS_EPSILON_NODE (node->token.type));
       dfa->nexts[idx] = node->next->node_idx;
       break;
     }
@@ -1653,7 +1665,9 @@ calc_eclosure (re_dfa_t *dfa)
 {
   Idx node_idx;
   bool incomplete;
-  DEBUG_ASSERT (dfa->nodes_len > 0);
+#ifdef DEBUG
+  assert (dfa->nodes_len > 0);
+#endif
   incomplete = false;
   /* For each nodes, calculate epsilon closure.  */
   for (node_idx = 0; ; ++node_idx)
@@ -1668,7 +1682,9 @@ calc_eclosure (re_dfa_t *dfa)
 	  node_idx = 0;
 	}
 
-      DEBUG_ASSERT (dfa->eclosures[node_idx].nelem != -1);
+#ifdef DEBUG
+      assert (dfa->eclosures[node_idx].nelem != -1);
+#endif
 
       /* If we have already calculated, skip it.  */
       if (dfa->eclosures[node_idx].nelem != 0)
@@ -1796,8 +1812,8 @@ peek_token (re_token_t *token, re_string_t *input, reg_syntax_t syntax)
   token->word_char = 0;
 #ifdef RE_ENABLE_I18N
   token->mb_partial = 0;
-  if (input->mb_cur_max > 1
-      && !re_string_first_byte (input, re_string_cur_idx (input)))
+  if (input->mb_cur_max > 1 &&
+      !re_string_first_byte (input, re_string_cur_idx (input)))
     {
       token->type = CHARACTER;
       token->mb_partial = 1;
@@ -1984,8 +2000,8 @@ peek_token (re_token_t *token, re_string_t *input, reg_syntax_t syntax)
       token->type = OP_PERIOD;
       break;
     case '^':
-      if (!(syntax & (RE_CONTEXT_INDEP_ANCHORS | RE_CARET_ANCHORS_HERE))
-	  && re_string_cur_idx (input) != 0)
+      if (!(syntax & (RE_CONTEXT_INDEP_ANCHORS | RE_CARET_ANCHORS_HERE)) &&
+	  re_string_cur_idx (input) != 0)
 	{
 	  char prev = re_string_peek_byte (input, -1);
 	  if (!(syntax & RE_NEWLINE_ALT) || prev != '\n')
@@ -1995,8 +2011,8 @@ peek_token (re_token_t *token, re_string_t *input, reg_syntax_t syntax)
       token->opr.ctx_type = LINE_FIRST;
       break;
     case '$':
-      if (!(syntax & RE_CONTEXT_INDEP_ANCHORS)
-	  && re_string_cur_idx (input) + 1 != re_string_length (input))
+      if (!(syntax & RE_CONTEXT_INDEP_ANCHORS) &&
+	  re_string_cur_idx (input) + 1 != re_string_length (input))
 	{
 	  re_token_t next;
 	  re_string_skip_bytes (input, 1);
@@ -2030,8 +2046,8 @@ peek_token_bracket (re_token_t *token, re_string_t *input, reg_syntax_t syntax)
   token->opr.c = c;
 
 #ifdef RE_ENABLE_I18N
-  if (input->mb_cur_max > 1
-      && !re_string_first_byte (input, re_string_cur_idx (input)))
+  if (input->mb_cur_max > 1 &&
+      !re_string_first_byte (input, re_string_cur_idx (input)))
     {
       token->type = CHARACTER;
       return 1;
@@ -2329,8 +2345,8 @@ parse_expression (re_string_t *regexp, regex_t *preg, re_token_t *token,
 	}
       FALLTHROUGH;
     case OP_CLOSE_SUBEXP:
-      if ((token->type == OP_CLOSE_SUBEXP)
-	  && !(syntax & RE_UNMATCHED_RIGHT_PAREN_ORD))
+      if ((token->type == OP_CLOSE_SUBEXP) &&
+	  !(syntax & RE_UNMATCHED_RIGHT_PAREN_ORD))
 	{
 	  *err = REG_ERPAREN;
 	  return NULL;
@@ -2438,7 +2454,9 @@ parse_expression (re_string_t *regexp, regex_t *preg, re_token_t *token,
 
     default:
       /* Must not happen?  */
-      DEBUG_ASSERT (false);
+#ifdef DEBUG
+      assert (0);
+#endif
       return NULL;
     }
   fetch_token (token, regexp, syntax);
@@ -3300,7 +3318,7 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 	       goto parse_bracket_exp_free_return;
 	      break;
 	    default:
-	      DEBUG_ASSERT (false);
+	      assert (0);
 	      break;
 	    }
 	}
@@ -3656,6 +3674,7 @@ build_charclass_op (re_dfa_t *dfa, RE_TRANSLATE_TYPE trans,
   Idx alloc = 0;
 #endif /* not RE_ENABLE_I18N */
   reg_errcode_t ret;
+  re_token_t br_token;
   bin_tree_t *tree;
 
   sbcset = (re_bitset_ptr_t) calloc (sizeof (bitset_t), 1);
@@ -3706,7 +3725,11 @@ build_charclass_op (re_dfa_t *dfa, RE_TRANSLATE_TYPE trans,
 #endif
 
   /* Build a tree for simple bracket.  */
-  re_token_t br_token = { .type = SIMPLE_BRACKET, .opr.sbcset = sbcset };
+#if defined GCC_LINT || defined lint
+  memset (&br_token, 0, sizeof br_token);
+#endif
+  br_token.type = SIMPLE_BRACKET;
+  br_token.opr.sbcset = sbcset;
   tree = create_token_tree (dfa, NULL, NULL, &br_token);
   if (__glibc_unlikely (tree == NULL))
     goto build_word_op_espace;
@@ -3797,7 +3820,11 @@ static bin_tree_t *
 create_tree (re_dfa_t *dfa, bin_tree_t *left, bin_tree_t *right,
 	     re_token_type_t type)
 {
-  re_token_t t = { .type = type };
+  re_token_t t;
+#if defined GCC_LINT || defined lint
+  memset (&t, 0, sizeof t);
+#endif
+  t.type = type;
   return create_token_tree (dfa, left, right, &t);
 }
 

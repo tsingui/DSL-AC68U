@@ -108,7 +108,6 @@ typedef enum
     PHY_TYPE_MAC2MAC,
     PHY_TYPE_G9991,
     PHY_TYPE_RTL8226,
-    PHY_TYPE_GPY211,
     PHY_TYPE_MAX,
 } phy_type_t;
 
@@ -351,7 +350,7 @@ static inline int phy_dev_power_set(phy_dev_t *phy_dev, int enable)
         }
         return 0;
     }
-
+    //printk("phy %s:%d power_set=%d\n", (phy_dev->phy_drv) ? phy_dev->phy_drv->name : NULL, phy_dev->addr, enable);
     if (enable)
         phy_dev->flag |= PHY_FLAG_POWER_SET_ENABLED;
     else

@@ -1,6 +1,6 @@
 /* Work around unlink bugs.
 
-   Copyright (C) 2009-2021 Free Software Foundation, Inc.
+   Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,12 +24,9 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "filename.h"
+#include "dosname.h"
 
 #undef unlink
-#if defined _WIN32 && !defined __CYGWIN__
-# define unlink _unlink
-#endif
 
 /* Remove file NAME.
    Return 0 if successful, -1 if not.  */
@@ -63,12 +60,15 @@ rpl_unlink (char const *name)
          can't delete a directory via a symlink.  */
       struct stat st;
       result = lstat (name, &st);
-      if (result == 0 || errno == EOVERFLOW)
+      if (result == 0)
         {
           /* Trailing NUL will overwrite the trailing slash.  */
           char *short_name = malloc (len);
           if (!short_name)
-            return -1;
+            {
+              errno = EPERM;
+              return -1;
+            }
           memcpy (short_name, name, len);
           while (len && ISSLASH (short_name[len - 1]))
             short_name[--len] = '\0';
@@ -79,7 +79,6 @@ rpl_unlink (char const *name)
               return -1;
             }
           free (short_name);
-          result = 0;
         }
     }
   if (!result)

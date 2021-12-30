@@ -110,5 +110,6 @@ Host: %HOSTIP:%HTTPPORT
 User-Agent: curl/%VERSION
 Accept: */*
 
+</protocol>
 </verify>
 </testcase>

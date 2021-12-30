@@ -54,13 +54,12 @@
 #include <assert.h>
 
 #include "blowfish.h"
-#include "blowfish-internal.h"
 
 #include "macros.h"
 
 /* precomputed S boxes */
-const struct blowfish_ctx
-_nettle_blowfish_initial_ctx = {
+static const struct blowfish_ctx
+initial_ctx = {
   {
     { /* ks0 */
       0xD1310BA6, 0x98DFB5AC, 0x2FFD72DB, 0xD01ADFB7, 0xB8E1AFED, 0x6A267E96,
@@ -262,8 +261,8 @@ _nettle_blowfish_initial_ctx = {
 
 #define R(c, l,r,i)  do { l ^= c->p[i]; r ^= F(c,l); } while(0)
 
-void
-_nettle_blowfish_encround (const struct blowfish_ctx *ctx, uint32_t * ret_xl,
+static void
+encrypt (const struct blowfish_ctx *ctx, uint32_t * ret_xl,
 	    uint32_t * ret_xr)
 {
   uint32_t xl, xr;
@@ -296,7 +295,7 @@ _nettle_blowfish_encround (const struct blowfish_ctx *ctx, uint32_t * ret_xl,
 }
 
 static void
-decround (const struct blowfish_ctx *ctx, uint32_t * ret_xl, uint32_t * ret_xr)
+decrypt (const struct blowfish_ctx *ctx, uint32_t * ret_xl, uint32_t * ret_xr)
 {
   uint32_t xl, xr;
 
@@ -340,7 +339,7 @@ blowfish_encrypt (const struct blowfish_ctx *ctx,
 
       d1 = READ_UINT32(src);
       d2 = READ_UINT32(src+4);
-      _nettle_blowfish_encround (ctx, &d1, &d2);
+      encrypt (ctx, &d1, &d2);
       dst[0] = (d1 >> 24) & 0xff;
       dst[1] = (d1 >> 16) & 0xff;
       dst[2] = (d1 >> 8) & 0xff;
@@ -362,7 +361,7 @@ blowfish_decrypt (const struct blowfish_ctx *ctx,
 
       d1 = READ_UINT32(src);
       d2 = READ_UINT32(src+4);
-      decround (ctx, &d1, &d2);
+      decrypt (ctx, &d1, &d2);
       dst[0] = (d1 >> 24) & 0xff;
       dst[1] = (d1 >> 16) & 0xff;
       dst[2] = (d1 >> 8) & 0xff;
@@ -381,14 +380,12 @@ blowfish_set_key (struct blowfish_ctx *ctx,
   int i, j;
   uint32_t data, datal, datar;
 
-  *ctx = _nettle_blowfish_initial_ctx;
+  *ctx = initial_ctx;
 
   for (i = j = 0; i < _BLOWFISH_ROUNDS + 2; i++)
     {
-      data = ((uint32_t) key[j] << 24)
-	| ((uint32_t) key[(j+1) % length] << 16)
-	| ((uint32_t) key[(j+2) % length] << 8)
-	| (uint32_t) key[(j+3) % length];
+      data = (key[j] << 24) | (key[(j+1) % length] << 16)
+	| (key[(j+2) % length] << 8) | key[(j+3) % length];
       ctx->p[i] ^= data;
       j = (j + 4) % length;
     }
@@ -396,15 +393,15 @@ blowfish_set_key (struct blowfish_ctx *ctx,
   datal = datar = 0;
   for (i = 0; i < _BLOWFISH_ROUNDS + 2; i += 2)
     {
-      _nettle_blowfish_encround (ctx, &datal, &datar);
+      encrypt (ctx, &datal, &datar);
       ctx->p[i] = datal;
       ctx->p[i + 1] = datar;
     }
-
+  
   for (j = 0; j < 4; j++)
     for (i = 0; i < 256; i += 2)
       {
-	_nettle_blowfish_encround (ctx, &datal, &datar);
+	encrypt (ctx, &datal, &datar);
 	ctx->s[j][i] = datal;
 	ctx->s[j][i + 1] = datar;
     }

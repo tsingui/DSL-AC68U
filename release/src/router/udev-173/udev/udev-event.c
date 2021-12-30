@@ -32,9 +32,6 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/signalfd.h>
-#if defined(RTCONFIG_HND_ROUTER_AX_6756)
-#include <sys/sysmacros.h>
-#endif
 #include <linux/sockios.h>
 
 #include "udev.h"

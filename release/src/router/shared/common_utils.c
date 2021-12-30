@@ -190,7 +190,7 @@ reallocate_string(char** string, const char* newstring)
 		return 0;
 	}
 
-	strlcpy(*string, newstring, newlength + 1);
+	strcpy(*string, newstring);
 
 	return 1;
 }

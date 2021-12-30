@@ -34,7 +34,6 @@
 #endif
 
 #include "umac.h"
-#include "umac-internal.h"
 
 #include "macros.h"
 
@@ -56,7 +55,7 @@
 #endif
 
 void
-_nettle_umac_l3_init (unsigned size, uint64_t *k)
+_umac_l3_init (unsigned size, uint64_t *k)
 {
   unsigned i;
   for (i = 0; i < size; i++)
@@ -83,7 +82,7 @@ umac_l3_word (const uint64_t *k, uint64_t w)
 }
 
 uint32_t
-_nettle_umac_l3 (const uint64_t *key, const uint64_t *m)
+_umac_l3 (const uint64_t *key, const uint64_t *m)
 {
   uint32_t y = (umac_l3_word (key, m[0])
 		+ umac_l3_word (key + 4, m[1])) % P;

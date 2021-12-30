@@ -111,7 +111,6 @@ const struct Curl_handler Curl_handler_file = {
   file_disconnect,                      /* disconnect */
   ZERO_NULL,                            /* readwrite */
   ZERO_NULL,                            /* connection_check */
-  ZERO_NULL,                            /* attach connection */
   0,                                    /* defport */
   CURLPROTO_FILE,                       /* protocol */
   CURLPROTO_FILE,                       /* family */
@@ -411,18 +410,16 @@ static CURLcode file_do(struct Curl_easy *data, bool *done)
     struct tm buffer;
     const struct tm *tm = &buffer;
     char header[80];
-    int headerlen;
-    char accept_ranges[24]= { "Accept-ranges: bytes\r\n" };
     if(expected_size >= 0) {
-      headerlen = msnprintf(header, sizeof(header),
+      msnprintf(header, sizeof(header),
                 "Content-Length: %" CURL_FORMAT_CURL_OFF_T "\r\n",
                 expected_size);
-      result = Curl_client_write(data, CLIENTWRITE_HEADER, header, headerlen);
+      result = Curl_client_write(data, CLIENTWRITE_HEADER, header, 0);
       if(result)
         return result;
 
       result = Curl_client_write(data, CLIENTWRITE_HEADER,
-                                 accept_ranges, strlen(accept_ranges));
+                                 (char *)"Accept-ranges: bytes\r\n", 0);
       if(result != CURLE_OK)
         return result;
     }
@@ -433,7 +430,7 @@ static CURLcode file_do(struct Curl_easy *data, bool *done)
       return result;
 
     /* format: "Tue, 15 Nov 1994 12:45:26 GMT" */
-    headerlen = msnprintf(header, sizeof(header),
+    msnprintf(header, sizeof(header),
               "Last-Modified: %s, %02d %s %4d %02d:%02d:%02d GMT\r\n%s",
               Curl_wkday[tm->tm_wday?tm->tm_wday-1:6],
               tm->tm_mday,
@@ -443,7 +440,7 @@ static CURLcode file_do(struct Curl_easy *data, bool *done)
               tm->tm_min,
               tm->tm_sec,
               data->set.opt_no_body ? "": "\r\n");
-    result = Curl_client_write(data, CLIENTWRITE_HEADER, header, headerlen);
+    result = Curl_client_write(data, CLIENTWRITE_HEADER, header, 0);
     if(result)
       return result;
     /* set the file size to make it available post transfer */

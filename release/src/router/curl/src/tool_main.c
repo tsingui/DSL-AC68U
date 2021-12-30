@@ -212,9 +212,10 @@ static void main_free(struct GlobalConfig *config)
   /* Main cleanup */
   curl_global_cleanup();
   convert_cleanup();
+  metalink_cleanup();
 #ifdef USE_NSS
   if(PR_Initialized()) {
-    /* prevent valgrind from reporting still reachable mem from NSPR arenas */
+    /* prevent valgrind from reporting still reachable mem from NSRP arenas */
     PL_ArenaFinish();
     /* prevent valgrind from reporting possibly lost memory (fd cache, ...) */
     PR_Cleanup();

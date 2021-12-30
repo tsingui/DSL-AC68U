@@ -25,7 +25,7 @@
  */
 #include "curl_setup.h"
 
-#if !defined(CURL_DISABLE_HTTP) && !defined(CURL_DISABLE_HSTS)
+#if !defined(CURL_DISABLE_HTTP) && defined(USE_HSTS)
 #include <curl/curl.h>
 #include "urldata.h"
 #include "llist.h"
@@ -37,7 +37,6 @@
 #include "parsedate.h"
 #include "rand.h"
 #include "rename.h"
-#include "strtoofft.h"
 
 /* The last 3 #include files should be in this order */
 #include "curl_printf.h"
@@ -49,7 +48,6 @@
 #define MAX_HSTS_HOSTLENSTR "256"
 #define MAX_HSTS_DATELEN 64
 #define MAX_HSTS_DATELENSTR "64"
-#define UNLIMITED "unlimited"
 
 #ifdef DEBUGBUILD
 /* to play well with debug builds, we can *set* a fixed time this will
@@ -60,10 +58,7 @@ static time_t debugtime(void *unused)
   char *timestr = getenv("CURL_TIME");
   (void)unused;
   if(timestr) {
-    curl_off_t val;
-    (void)curlx_strtoofft(timestr, NULL, 10, &val);
-
-    val += (curl_off_t)deltatime;
+    unsigned long val = strtol(timestr, NULL, 10) + deltatime;
     return (time_t)val;
   }
   return time(NULL);
@@ -138,11 +133,6 @@ CURLcode Curl_hsts_parse(struct hsts *h, const char *hostname,
   bool subdomains = FALSE;
   struct stsentry *sts;
   time_t now = time(NULL);
-
-  if(Curl_host_is_ipnum(hostname))
-    /* "explicit IP address identification of all forms is excluded."
-       / RFC 6797 */
-    return CURLE_OK;
 
   do {
     while(*p && ISSPACE(*p))
@@ -284,17 +274,13 @@ static CURLcode hsts_push(struct Curl_easy *data,
   e.namelen = strlen(sts->host);
   e.includeSubDomains = sts->includeSubDomains;
 
-  if(sts->expires != TIME_T_MAX) {
-    result = Curl_gmtime((time_t)sts->expires, &stamp);
-    if(result)
-      return result;
+  result = Curl_gmtime(sts->expires, &stamp);
+  if(result)
+    return result;
 
-    msnprintf(e.expire, sizeof(e.expire), "%d%02d%02d %02d:%02d:%02d",
-              stamp.tm_year + 1900, stamp.tm_mon + 1, stamp.tm_mday,
-              stamp.tm_hour, stamp.tm_min, stamp.tm_sec);
-  }
-  else
-    strcpy(e.expire, UNLIMITED);
+  msnprintf(e.expire, sizeof(e.expire), "%d%02d%02d %02d:%02d:%02d",
+            stamp.tm_year + 1900, stamp.tm_mon + 1, stamp.tm_mday,
+            stamp.tm_hour, stamp.tm_min, stamp.tm_sec);
 
   sc = data->set.hsts_write(data, &e, i,
                             data->set.hsts_write_userp);
@@ -308,18 +294,14 @@ static CURLcode hsts_push(struct Curl_easy *data,
 static CURLcode hsts_out(struct stsentry *sts, FILE *fp)
 {
   struct tm stamp;
-  if(sts->expires != TIME_T_MAX) {
-    CURLcode result = Curl_gmtime((time_t)sts->expires, &stamp);
-    if(result)
-      return result;
-    fprintf(fp, "%s%s \"%d%02d%02d %02d:%02d:%02d\"\n",
-            sts->includeSubDomains ? ".": "", sts->host,
-            stamp.tm_year + 1900, stamp.tm_mon + 1, stamp.tm_mday,
-            stamp.tm_hour, stamp.tm_min, stamp.tm_sec);
-  }
-  else
-    fprintf(fp, "%s%s \"%s\"\n",
-            sts->includeSubDomains ? ".": "", sts->host, UNLIMITED);
+  CURLcode result = Curl_gmtime(sts->expires, &stamp);
+  if(result)
+    return result;
+
+  fprintf(fp, "%s%s \"%d%02d%02d %02d:%02d:%02d\"\n",
+          sts->includeSubDomains ? ".": "", sts->host,
+          stamp.tm_year + 1900, stamp.tm_mon + 1, stamp.tm_mday,
+          stamp.tm_hour, stamp.tm_min, stamp.tm_sec);
   return CURLE_OK;
 }
 
@@ -412,8 +394,7 @@ static CURLcode hsts_add(struct hsts *h, char *line)
               "%" MAX_HSTS_HOSTLENSTR "s \"%" MAX_HSTS_DATELENSTR "[^\"]\"",
               host, date);
   if(2 == rc) {
-    time_t expires = strcmp(date, UNLIMITED) ? Curl_getdate_capped(date) :
-      TIME_T_MAX;
+    time_t expires = Curl_getdate_capped(date);
     CURLcode result;
     char *p = host;
     bool subdomain = FALSE;
@@ -458,15 +439,12 @@ static CURLcode hsts_pull(struct Curl_easy *data, struct hsts *h)
           expires = Curl_getdate_capped(e.expire);
         else
           expires = TIME_T_MAX; /* the end of time */
-        result = hsts_create(h, e.name,
-                             /* bitfield to bool conversion: */
-                             e.includeSubDomains ? TRUE : FALSE,
-                             expires);
+        result = hsts_create(h, e.name, e.includeSubDomains, expires);
         if(result)
           return result;
       }
       else if(sc == CURLSTS_FAIL)
-        return CURLE_ABORTED_BY_CALLBACK;
+        return CURLE_BAD_FUNCTION_ARGUMENT;
     } while(sc == CURLSTS_OK);
   }
   return CURLE_OK;
@@ -536,9 +514,7 @@ CURLcode Curl_hsts_loadfile(struct Curl_easy *data,
  */
 CURLcode Curl_hsts_loadcb(struct Curl_easy *data, struct hsts *h)
 {
-  if(h)
-    return hsts_pull(data, h);
-  return CURLE_OK;
+  return hsts_pull(data, h);
 }
 
-#endif /* CURL_DISABLE_HTTP || CURL_DISABLE_HSTS */
+#endif /* CURL_DISABLE_HTTP || USE_HSTS */

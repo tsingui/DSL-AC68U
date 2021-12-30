@@ -20,13 +20,11 @@
 #include "lib/encoding/time_fmt.h"
 #include "lib/string/printf.h"
 
-DISABLE_GCC_WARNING("-Wstrict-prototypes")
 #include <pk11pub.h>
 #include <cryptohi.h>
 #include <cert.h>
 #include <keyhi.h>
 #include <time.h>
-ENABLE_GCC_WARNING("-Wstrict-prototypes")
 
 /* Units of PRTime per second.
  *

@@ -19,7 +19,6 @@
 { "TestingV3AuthInitialDistDelay", "20 seconds" },
 { "TestingAuthDirTimeToLearnReachability", "0 minutes" },
 { "MinUptimeHidServDirectoryV2", "0 minutes" },
-{ "TestingMinTimeToReportBandwidth", "0 seconds" },
 { "TestingServerDownloadInitialDelay", "0" },
 { "TestingClientDownloadInitialDelay", "0" },
 { "TestingServerConsensusDownloadInitialDelay", "0" },

@@ -65,7 +65,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sched.h>
 
 /* Timer-less entropy source */
 #ifdef JENT_CONF_ENABLE_INTERNAL_TIMER
@@ -209,28 +208,6 @@ static inline void jent_memset_secure(void *s, size_t n)
 {
 	memset(s, 0, n);
 	__asm__ __volatile__("" : : "r" (s) : "memory");
-}
-
-static inline long jent_ncpu(void)
-{
-#ifdef _POSIX_SOURCE
-	long ncpu = sysconf(_SC_NPROCESSORS_ONLN);
-
-	if (ncpu == -1)
-		return -errno;
-
-	if (ncpu == 0)
-		return -EFAULT;
-
-	return ncpu;
-#else
-	return 1;
-#endif
-}
-
-static inline void jent_yield(void)
-{
-	sched_yield();
 }
 
 /* --- helpers needed in user space -- */

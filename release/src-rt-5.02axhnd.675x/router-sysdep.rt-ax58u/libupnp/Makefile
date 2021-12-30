@@ -1,13 +1,19 @@
+#
+# libupnp
+
 include $(TOP)/common.mak
-ifneq ($(CMWIFI),)
-UPNPLIB_NAME = libwlupnp.so
-else
 UPNPLIB_NAME = libupnp.so
-endif
+
+UPNPLIB = $(SRCBASE)/router-sysdep/libupnp
+SRCPATH = $(UPNPLIB)/upnp
+
+vpath %.c $(SRCPATH) $(UPNPLIB)/linux
+vpath %.o $(UPNPLIB)/prebuilt
 
 all:
 	echo use prebuilt 
 	cp -f ./prebuilt/$(UPNPLIB_NAME) .
+
 
 install: all
 	install -d $(INSTALLDIR)/usr/lib
@@ -15,6 +21,6 @@ install: all
 	$(STRIP) $(INSTALLDIR)/usr/lib/$(UPNPLIB_NAME)
 
 clean:
-	rm -f $(UPNPLIB_NAME)
+	rm -f $(UPNPLIB_NAME) $(OBJFILES)
 
 .PHONY: clean

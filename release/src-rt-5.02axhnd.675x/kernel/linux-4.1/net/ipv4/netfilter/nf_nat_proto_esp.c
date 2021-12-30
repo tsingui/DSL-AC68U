@@ -47,7 +47,8 @@ MODULE_DESCRIPTION("Netfilter NAT protocol helper module for ESP");
 static bool
 esp_in_range(const struct nf_conntrack_tuple *tuple,
 	     enum nf_nat_manip_type maniptype,
-	     const struct nf_nat_range *range)
+	     const union nf_conntrack_man_proto *min,
+	     const union nf_conntrack_man_proto *max)
 {
    return true;
 }

@@ -22,7 +22,7 @@
 ###########################################################################
 #
 # This script grew out of help from Przemyslaw Iskra and Balint Szilakszi
-# a late evening in the #curl IRC channel.
+# a late evening in the #curl IRC channel on freenode.
 #
 
 use strict;

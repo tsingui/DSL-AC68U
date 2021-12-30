@@ -249,7 +249,6 @@ static int _secure_conf(char* buf)
 		"wl1_phrase_x", "wl1.1_phrase_x", "wl1.2_phrase_x", "wl1.3_phrase_x",
 		"wl_phrase_x", "vpnc_openvpn_pwd", "PM_SMTP_AUTH_USER", "PM_MY_EMAIL",
 		"PM_SMTP_AUTH_PASS", "wtf_username", "ddns_hostname_x", "ddns_username_x",
-		"shell_username", "shell_passwd",
 		NULL};
 
 	//name is token
@@ -344,7 +343,6 @@ static int _convert_data(const char *name, char *value, size_t value_len)
 	//name contains token
 	const char *http_token[] = {"http_username", "http_passwd", NULL};
 	const char password_token[] = "password";
-	const char acclist_token[] = "acc_list";
 
 	//name is token
 	const char *token1[] = {"wan_pppoe_passwd", "modem_pass", "modem_pincode",
@@ -371,12 +369,12 @@ static int _convert_data(const char *name, char *value, size_t value_len)
 		"wl2_phrase_x", "wl2.1_phrase_x", "wl2.2_phrase_x", "wl2.3_phrase_x",
 		"wl_phrase_x", "vpnc_openvpn_pwd", "PM_SMTP_AUTH_USER", "PM_MY_EMAIL",
 		"PM_SMTP_AUTH_PASS", "wtf_username", "ddns_hostname_x", "ddns_username_x",
-		"shell_username", "shell_passwd",
 		NULL};
 
 	//name is token
 	//value is [<]username>password<username...
-	const char *token2[] = {"pptpd_clientlist", "vpn_serverx_clientlist", 	NULL};
+	const char *token2[] = {"acc_list", "pptpd_clientlist", "vpn_serverx_clientlist",
+		NULL};
 
 	//name is token
 	//valus is [<]desc>type>index>username>password<desc...
@@ -453,13 +451,6 @@ static int _convert_data(const char *name, char *value, size_t value_len)
 	{
 		char *e = strchr(value, '@') ? : strchr(value, 0);
 		memset(value, PROTECT_CHAR, e - value);
-		return 1;
-	}
-
-	//convert acc_list as DEFAULT_LOGIN_DATA>DEFAULT_LOGIN_DATA
-	if(strcmp(name, acclist_token) == 0)
-	{
-		snprintf(value, value_len, "%s>%s", DEFAULT_LOGIN_DATA, DEFAULT_LOGIN_DATA);
 		return 1;
 	}
 
@@ -747,12 +738,8 @@ int nvram_restore_new(char *file, char *buf)
 		{
 			*v++ = '\0';
 
-			if (issyspara(p)) {
-				if (ate_brcm_factory_mode() && (!strcmp(p, "http_username") || !strcmp(p, "http_passwd")))
-					nvram_set(p, "admin");
-				else
-					nvram_set(p, v);
-			}
+			if (issyspara(p))
+				nvram_set(p, v);
 
 			p = v + strlen(v) + 1;
 		}
@@ -817,7 +804,7 @@ main(int argc, char **argv)
 					fprintf(stderr, "Can NOT alloc memory!!!");
 					return 0;
 				}
-				memset(tmp_dnv, 0, EXT_NVRAM_SPACE);
+				memset(tmp_dnv, 0, sizeof(tmp_dnv));
 				nvram_dec_all(tmp_dnv, buf);
 				nvram_save_new(*argv, tmp_dnv);
 				free(tmp_dnv);
@@ -834,7 +821,7 @@ main(int argc, char **argv)
 					fprintf(stderr, "Can NOT alloc memory!!!");
 					return 0;
 				}
-				memset(tmp_export, 0, EXT_NVRAM_SPACE);
+				memset(tmp_export, 0, sizeof(tmp_export));
 				nvram_getall(buf, sizeof(buf));
 #ifdef RTCONFIG_NVRAM_ENCRYPT
 				char *tmp_dnv = malloc(EXT_NVRAM_SPACE);
@@ -843,7 +830,7 @@ main(int argc, char **argv)
 					free(tmp_export);
 					return 0;
 				}
-				memset(tmp_dnv, 0, EXT_NVRAM_SPACE);
+				memset(tmp_dnv, 0, sizeof(tmp_dnv));
 				nvram_dec_all(tmp_dnv, buf);
 				export_mode(mode, tmp_export, tmp_dnv);
 				free(tmp_dnv);
@@ -863,12 +850,12 @@ main(int argc, char **argv)
 				}
 				nvram_getall(buf, sizeof(buf));
 #ifdef RTCONFIG_NVRAM_ENCRYPT
-				memset(tmpbuf, 0, EXT_NVRAM_SPACE);
+				memset(tmpbuf, 0, sizeof(tmpbuf));
 				nvram_dec_all(tmpbuf, buf);
 #else
 				memcpy(tmpbuf, buf, EXT_NVRAM_SPACE);
 #endif
-				_secure_conf(tmpbuf, EXT_NVRAM_SPACE);
+				_secure_conf(tmpbuf, sizeof(tmpbuf));
 				nvram_save_new(*argv, tmpbuf);
 				free(tmpbuf);
 			}

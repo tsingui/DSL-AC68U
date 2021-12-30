@@ -34,24 +34,10 @@
 
 /* For size_t */
 #include <stddef.h>
-#include <stdint.h>
 
-/* Attributes we want to use in installed header files, and hence
-   can't rely on config.h. */
-#ifdef __GNUC__
-
-#define _NETTLE_ATTRIBUTE_PURE __attribute__((pure))
-#ifndef _NETTLE_ATTRIBUTE_DEPRECATED
-/* Variant without message is supported since gcc-3.1 or so. */
-#define _NETTLE_ATTRIBUTE_DEPRECATED __attribute__((deprecated))
-#endif
-
-#else /* !__GNUC__ */
-
-#define _NETTLE_ATTRIBUTE_PURE
-#define _NETTLE_ATTRIBUTE_DEPRECATED
-
-#endif /* !__GNUC__ */
+/* Pretend these types always exists. Nettle doesn't use them. */
+#define _STDINT_HAVE_INT_FAST32_T 1
+#include "nettle-stdint.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,14 +47,7 @@ extern "C" {
 union nettle_block16
 {
   uint8_t b[16];
-  unsigned long w[16 / sizeof(unsigned long)] _NETTLE_ATTRIBUTE_DEPRECATED;
-  uint64_t u64[2];
-};
-
-union nettle_block8
-{
-  uint8_t b[8];
-  uint64_t u64;
+  unsigned long w[16 / sizeof(unsigned long)];
 };
 
 /* Randomness. Used by key generation and dsa signature creation. */

@@ -1,6 +1,6 @@
 /* Provide file descriptor control.
 
-   Copyright (C) 2009-2021 Free Software Foundation, Inc.
+   Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #ifdef __KLIBC__
@@ -70,14 +69,14 @@ dupfd (int oldfd, int newfd, int flags)
       return -1;
     }
   if (old_handle == INVALID_HANDLE_VALUE
-      || (mode = _setmode (oldfd, O_BINARY)) == -1)
+      || (mode = setmode (oldfd, O_BINARY)) == -1)
     {
       /* oldfd is not open, or is an unassigned standard file
          descriptor.  */
       errno = EBADF;
       return -1;
     }
-  _setmode (oldfd, mode);
+  setmode (oldfd, mode);
   flags |= mode;
 
   for (;;)
@@ -491,9 +490,7 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 #if !HAVE_FCNTL
   result = dupfd (fd, target, O_CLOEXEC);
 #else /* HAVE_FCNTL */
-# if defined __NetBSD__ || defined __HAIKU__
-  /* On NetBSD 9.0, the system fcntl (fd, F_DUPFD_CLOEXEC, target)
-     has only the same effect as fcntl (fd, F_DUPFD, target).  */
+# if defined __HAIKU__
   /* On Haiku, the system fcntl (fd, F_DUPFD_CLOEXEC, target) sets
      the FD_CLOEXEC flag on fd, not on target.  Therefore avoid the
      system fcntl in this case.  */
@@ -548,7 +545,7 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 #ifdef __KLIBC__
 
 static int
-klibc_fcntl (int fd, int action, /* arg */...)
+klibc_fcntl (int fd, int action, /* arg */...);
 {
   va_list arg_ptr;
   int arg;

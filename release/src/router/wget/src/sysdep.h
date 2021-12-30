@@ -1,6 +1,5 @@
 /* Dirty system-dependent hacks.
-   Copyright (C) 1996-2011, 2015, 2018-2021 Free Software Foundation,
-   Inc.
+   Copyright (C) 1996-2011, 2015, 2018 Free Software Foundation, Inc.
 
 This file is part of GNU Wget.
 
@@ -36,6 +35,7 @@ as that of the covered work.  */
 
 /* Provided by gnulib on systems that don't have it: */
 
+#include <alloca.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdint.h>

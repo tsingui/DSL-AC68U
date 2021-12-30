@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Free Software Foundation, Inc.
+ * Copyright(c) 2017-2018 Free Software Foundation, Inc.
  *
  * This file is part of GNU Wget.
  *
@@ -24,8 +24,6 @@
 #include <stdio.h>  // fmemopen
 #include <string.h>  // strncmp
 #include <stdlib.h>  // free
-#include <unistd.h>  // close
-#include <fcntl.h>  // open flags
 #include <unistd.h>  // close
 
 #include "wget.h"
@@ -62,10 +60,15 @@ FILE *fopen_wgetrc(const char *pathname, const char *mode)
 void exit_wget(int status)
 {
 }
+#else
+void exit(int status)
+{
+}
 #endif
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
+	FILE *bak;
 	struct url *url;
 	struct iri iri;
 	char *in;
@@ -73,7 +76,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	if (size > 4096) // same as max_len = ... in .options file
 		return 0;
 
-	CLOSE_STDERR
+	bak = stderr;
+	stderr = fopen("/dev/null", "w");
 
 	in = (char *) malloc(size + 1);
 	memcpy(in, data, size);
@@ -99,7 +103,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	free(iri.orig_url);
 	free(in);
 
-	RESTORE_STDERR
+	fclose(stderr);
+	stderr = bak;
 
 	return 0;
 }

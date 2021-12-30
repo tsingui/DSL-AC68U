@@ -33,7 +33,6 @@ struct hyptransfer {
   hyper_waker *read_waker;
   const hyper_executor *exec;
   hyper_task *endtask;
-  hyper_waker *exp100_waker;
 };
 
 size_t Curl_hyper_recv(void *userp, hyper_context *ctx,

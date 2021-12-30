@@ -39,7 +39,6 @@
 #include "libmtd_int.h"
 #include "common.h"
 
-#include <sys/sysmacros.h>
 /**
  * mkpath - compose full path from 2 given components.
  * @path: the first component

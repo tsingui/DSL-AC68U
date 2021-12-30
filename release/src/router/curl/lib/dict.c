@@ -89,7 +89,6 @@ const struct Curl_handler Curl_handler_dict = {
   ZERO_NULL,                            /* disconnect */
   ZERO_NULL,                            /* readwrite */
   ZERO_NULL,                            /* connection_check */
-  ZERO_NULL,                            /* attach connection */
   PORT_DICT,                            /* defport */
   CURLPROTO_DICT,                       /* protocol */
   CURLPROTO_DICT,                       /* family */
@@ -215,14 +214,14 @@ static CURLcode dict_do(struct Curl_easy *data, bool *done)
       }
     }
 
-    if(!word || (*word == (char)0)) {
-      infof(data, "lookup word is missing");
+    if((word == NULL) || (*word == (char)0)) {
+      infof(data, "lookup word is missing\n");
       word = (char *)"default";
     }
-    if(!database || (*database == (char)0)) {
+    if((database == NULL) || (*database == (char)0)) {
       database = (char *)"!";
     }
-    if(!strategy || (*strategy == (char)0)) {
+    if((strategy == NULL) || (*strategy == (char)0)) {
       strategy = (char *)".";
     }
 
@@ -266,11 +265,11 @@ static CURLcode dict_do(struct Curl_easy *data, bool *done)
       }
     }
 
-    if(!word || (*word == (char)0)) {
-      infof(data, "lookup word is missing");
+    if((word == NULL) || (*word == (char)0)) {
+      infof(data, "lookup word is missing\n");
       word = (char *)"default";
     }
-    if(!database || (*database == (char)0)) {
+    if((database == NULL) || (*database == (char)0)) {
       database = (char *)"!";
     }
 

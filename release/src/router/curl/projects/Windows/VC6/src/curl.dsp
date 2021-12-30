@@ -803,6 +803,10 @@ SOURCE=..\..\..\..\src\tool_main.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\..\src\tool_metalink.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\src\tool_msgs.c
 # End Source File
 # Begin Source File
@@ -1000,6 +1004,10 @@ SOURCE=..\..\..\..\src\tool_libinfo.h
 # Begin Source File
 
 SOURCE=..\..\..\..\src\tool_main.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\src\tool_metalink.h
 # End Source File
 # Begin Source File
 

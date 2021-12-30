@@ -45,6 +45,7 @@
 #define HAVE_FCNTL_H           1
 #define HAVE_FREEADDRINFO      1
 #define HAVE_GETADDRINFO       1
+#define HAVE_GETNAMEINFO       1
 #define HAVE_GETPROTOBYNAME    1
 #define HAVE_GETTIMEOFDAY      1
 #define HAVE_IO_H              1
@@ -92,7 +93,7 @@
 #define STDC_HEADERS           1
 #define TIME_WITH_SYS_TIME     1
 
-/* Qualifiers for send(), recv(), and recvfrom() */
+/* Qualifiers for send(), recv(), recvfrom() and getnameinfo(). */
 
 #define SEND_TYPE_ARG1         int
 #define SEND_QUAL_ARG2         const
@@ -115,6 +116,12 @@
 #define RECVFROM_TYPE_ARG6     int
 #define RECVFROM_TYPE_RETV     int
 #define RECVFROM_TYPE_ARG2_IS_VOID 1
+
+#define GETNAMEINFO_QUAL_ARG1  const
+#define GETNAMEINFO_TYPE_ARG1  struct sockaddr *
+#define GETNAMEINFO_TYPE_ARG2  int
+#define GETNAMEINFO_TYPE_ARG46 int
+#define GETNAMEINFO_TYPE_ARG7  int
 
 #define BSD
 

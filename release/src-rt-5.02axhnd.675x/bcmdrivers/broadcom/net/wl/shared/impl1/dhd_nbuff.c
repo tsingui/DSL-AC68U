@@ -1117,15 +1117,14 @@ dhd_databuf_cache_clear(dhd_pub_t * dhdp)
 struct sk_buff *
 dhd_xlate_to_skb(dhd_pub_t * dhd_pub, pNBuff_t pNBuff)
 {
-    struct sk_buff *skb;
-    FkBuff_t *fkb = PNBUFF_2_FKBUFF(pNBuff);
+    struct sk_buff * skb;
 
-    skb = skb_xlate_dp(fkb, NULL);
+    skb = nbuff_xlate(pNBuff);
 
-    if (unlikely(skb == (struct sk_buff *) NULL)) {
+    if (unlikely(skb == (struct sk_buff *) NULL))
+    {
         return NULL;
-    }
-
+	}
     SKB_BPM_TAINTED(skb);
 
     return skb;

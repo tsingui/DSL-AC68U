@@ -29,9 +29,6 @@
 #include <dirent.h>
 #include <fnmatch.h>
 #include <time.h>
-#if defined(RTCONFIG_HND_ROUTER_AX_6756)
-#include <sys/sysmacros.h>
-#endif
 
 #include "udev.h"
 

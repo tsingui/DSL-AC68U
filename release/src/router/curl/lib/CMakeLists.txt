@@ -20,7 +20,6 @@
 #
 ###########################################################################
 set(LIB_NAME libcurl)
-set(LIBCURL_OUTPUT_NAME libcurl CACHE STRING "Basename of the curl library")
 
 if(BUILD_SHARED_LIBS)
   set(CURL_STATICLIB NO)
@@ -99,10 +98,7 @@ if(WIN32)
   add_definitions(-D_USRDLL)
 endif()
 
-set_target_properties(${LIB_NAME} PROPERTIES
-  COMPILE_DEFINITIONS BUILDING_LIBCURL
-  OUTPUT_NAME ${LIBCURL_OUTPUT_NAME}
-  )
+set_target_properties(${LIB_NAME} PROPERTIES COMPILE_DEFINITIONS BUILDING_LIBCURL)
 
 if(HIDES_CURL_PRIVATE_SYMBOLS)
   set_property(TARGET ${LIB_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "CURL_HIDDEN_SYMBOLS")

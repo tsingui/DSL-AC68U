@@ -36,27 +36,31 @@
 # include "config.h"
 #endif
 
-#include <stdlib.h>
+#include <assert.h>
 
-#include "aes.h"
+#include "aes-internal.h"
 
 void
 aes_set_encrypt_key(struct aes_ctx *ctx,
-		    size_t key_size, const uint8_t *key)
+		    size_t keysize, const uint8_t *key)
 {
-  switch (key_size)
-    {
-    default: abort();
-    case AES128_KEY_SIZE:
-      aes128_set_encrypt_key(&ctx->u.ctx128, key);
-      break;
-    case AES192_KEY_SIZE:
-      aes192_set_encrypt_key(&ctx->u.ctx192, key);
-      break;
-    case AES256_KEY_SIZE:
-      aes256_set_encrypt_key(&ctx->u.ctx256, key);
-      break;
-    }
+  unsigned nk, nr;
+
+  assert(keysize >= AES_MIN_KEY_SIZE);
+  assert(keysize <= AES_MAX_KEY_SIZE);
   
-  ctx->key_size = key_size;
+  /* Truncate keysizes to the valid key sizes provided by Rijndael */
+  if (keysize == AES256_KEY_SIZE) {
+    nk = 8;
+    nr = _AES256_ROUNDS;
+  } else if (keysize >= AES192_KEY_SIZE) {
+    nk = 6;
+    nr = _AES192_ROUNDS;
+  } else { /* must be 16 or more */
+    nk = 4;
+    nr = _AES128_ROUNDS;
+  }
+
+  ctx->rounds = nr;
+  _aes_set_key (nr, nk, ctx->keys, key);
 }

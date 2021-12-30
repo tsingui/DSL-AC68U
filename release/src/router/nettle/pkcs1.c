@@ -39,7 +39,6 @@
 #include <string.h>
 
 #include "pkcs1.h"
-#include "hogweed-internal.h"
 
 /* Formats the PKCS#1 padding, of the form
  *

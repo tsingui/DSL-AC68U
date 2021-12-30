@@ -1,6 +1,5 @@
 /* Messages logging.
-   Copyright (C) 1998-2011, 2015, 2018-2021 Free Software Foundation,
-   Inc.
+   Copyright (C) 1998-2011, 2015, 2018 Free Software Foundation, Inc.
 
 This file is part of GNU Wget.
 
@@ -427,9 +426,6 @@ log_vprintf_internal (struct logvprintf_state *state, const char *fmt,
   FILE *fp = get_log_fp ();
   FILE *warcfp = get_warc_log_fp ();
 
-  if (fp == NULL)
-      return false;
-
   if (!save_context_p && warcfp == NULL)
     {
       /* In the simple case just call vfprintf(), to avoid needless
@@ -483,7 +479,7 @@ log_vprintf_internal (struct logvprintf_state *state, const char *fmt,
   if (save_context_p)
     saved_append (write_ptr);
   FPUTS (write_ptr, fp);
-  if (warcfp != NULL && warcfp != fp)
+  if (warcfp != NULL)
     FPUTS (write_ptr, warcfp);
   xfree (state->bigmsg);
 
@@ -904,7 +900,6 @@ escnonprint_uri (const char *str)
   return escnonprint_internal (str, '%', 16);
 }
 
-#if defined DEBUG_MALLOC || defined TESTING
 void
 log_cleanup (void)
 {
@@ -912,7 +907,6 @@ log_cleanup (void)
   for (i = 0; i < countof (ring); i++)
     xfree (ring[i].buffer);
 }
-#endif
 
 /* When SIGHUP or SIGUSR1 are received, the output is redirected
    elsewhere.  Such redirection is only allowed once. */
@@ -971,7 +965,7 @@ redirect_output (bool to_file, const char *signal_name)
 static void
 check_redirect_output (void)
 {
-#if !defined(WINDOWS) && !defined(__VMS)
+#ifndef WINDOWS
   /* If it was redirected already to log file by SIGHUP, SIGUSR1 or -o parameter,
    * it was permanent.
    * If there was no SIGHUP or SIGUSR1 and shell is interactive
@@ -991,5 +985,5 @@ check_redirect_output (void)
           redirect_output (false,NULL);
         }
     }
-#endif /* !defined(WINDOWS) && !defined(__VMS) */
+#endif /* WINDOWS */
 }

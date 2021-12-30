@@ -477,11 +477,11 @@ dhd_awl_rx_flow_miss_handler_archer_dhd_sll(void *ctxt, pktlist_t *misspktl)
 	    awl->rx.a2w_rx_packets++;
 
 	    /* Call DHD Rx handler */
-	    DHD_LOCK(dhdp);
+	    DHD_PERIM_LOCK_ALL((dhdp->fwder_unit % FWDER_MAX_UNIT));
 
 	    dhd_bus_rx_frame(dhdp->bus, skb, ARCHER_WLAN_INTF_IDX(skb), 1);
 
-	    DHD_UNLOCK(dhdp);
+	    DHD_PERIM_UNLOCK_ALL((dhdp->fwder_unit % FWDER_MAX_UNIT));
 
 	    /* Update stats */
 	    awl = DHD_AWL_CB(dhdp);
@@ -656,7 +656,7 @@ dhd_awl_process_slowpath_rxpkts(dhd_pub_t *dhdp, int rxbound)
 	DHD_AWL_PKTLIST_UNLK(awl->rx.a2w_pktl_lock);
 
 	/* Let dhd_bus process the packets */
-	DHD_LOCK(dhdp);
+	DHD_PERIM_LOCK_ALL((dhdp->fwder_unit % FWDER_MAX_UNIT));
 
 	do {
 	    struct sk_buff* nskb = skb->prev;
@@ -667,7 +667,7 @@ dhd_awl_process_slowpath_rxpkts(dhd_pub_t *dhdp, int rxbound)
 	    skb = nskb;
 	} while (--npkts);
 
-	DHD_UNLOCK(dhdp);
+	DHD_PERIM_UNLOCK_ALL((dhdp->fwder_unit % FWDER_MAX_UNIT));
 
 	if (pktlist->len != 0) {
 	    more = true;

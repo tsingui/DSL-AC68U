@@ -4,7 +4,6 @@ Protocols: HTTP
 Added:
 Help: Allow HTTP 0.9 responses
 Category: http
-Example: --http0.9 $URL
 ---
 Tells curl to be fine with HTTP version 0.9 response.
 

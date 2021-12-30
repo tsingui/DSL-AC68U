@@ -815,8 +815,8 @@ width:122px;
 	background-position: -0px -90px;
 }
 .menu_ParentalControl{
-	background: url(images/New_ui/icon_ParentalControl.png);
-	background-size: cover;
+	background-image: url(images/New_ui/icon_indexes.png);
+	background-position: -0px -90px;
 }
 .menu_APP{
 	background-image: url(images/New_ui/icon_indexes.png);

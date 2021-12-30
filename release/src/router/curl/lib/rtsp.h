@@ -22,7 +22,7 @@
  *
  ***************************************************************************/
 #ifdef USE_HYPER
-#define CURL_DISABLE_RTSP 1
+#define CURL_DISABLE_RTSP
 #endif
 
 #ifndef CURL_DISABLE_RTSP

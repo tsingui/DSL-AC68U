@@ -59,8 +59,8 @@ struct sha1_ctx
 {
   uint32_t state[_SHA1_DIGEST_LENGTH];    /* State variables */
   uint64_t count;                         /* 64-bit block count */
-  unsigned int index;                     /* index into buffer */
   uint8_t block[SHA1_BLOCK_SIZE];         /* SHA1 data buffer */
+  unsigned int index;                     /* index into buffer */
 };
 
 void
@@ -79,9 +79,7 @@ sha1_digest(struct sha1_ctx *ctx,
 /* Internal compression function. STATE points to 5 uint32_t words,
    and DATA points to 64 bytes of input data, possibly unaligned. */
 void
-nettle_sha1_compress(uint32_t *state, const uint8_t *data);
-
-#define _nettle_sha1_compress nettle_sha1_compress
+_nettle_sha1_compress(uint32_t *state, const uint8_t *data);
 
 #ifdef __cplusplus
 }

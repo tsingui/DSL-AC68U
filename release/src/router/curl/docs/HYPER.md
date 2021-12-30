@@ -14,7 +14,9 @@ changes.
 
 ## Hyper version
 
-The C API for Hyper is brand new and is still under development.
+The C API for Hyper is brand new and under development. This description
+assumes that you get and build that C API off [the branch in Hyper's git
+repository](https://github.com/hyperium/hyper/tree/hyper-capi).
 
 ## build curl with hyper
 
@@ -43,13 +45,6 @@ on specific input and output headers are done the same way in curl code.
 The API in Hyper delivers received HTTP headers as (cleaned up) name=value
 pairs, making it impossible for curl to know the exact byte representation
 over the wire with Hyper.
-
-## Limitations
-
-The hyper backend doesn't support
-
-- `CURLOPT_IGNORE_CONTENT_LENGTH`
-- RTSP
 
 ## Remaining issues
 

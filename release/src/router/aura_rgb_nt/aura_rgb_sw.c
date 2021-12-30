@@ -21,7 +21,7 @@
 #include <shutils.h>
 #include <aura_rgb_nt.h>
 
-#if defined(GTAXY16000) || defined(GTAX11000) || defined(GTAC2900) || defined(GTAXE11000) || defined(GTAX11000PRO)
+#if defined(GTAXY16000) || defined(GTAX11000) || defined(GTAC2900) || defined(GTAXE11000)
 #define	I2C_SLAVE_ADDR	0x4E
 #endif
 

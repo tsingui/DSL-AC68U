@@ -74,7 +74,6 @@ const struct Curl_handler Curl_handler_gopher = {
   ZERO_NULL,                            /* disconnect */
   ZERO_NULL,                            /* readwrite */
   ZERO_NULL,                            /* connection_check */
-  ZERO_NULL,                            /* attach connection */
   PORT_GOPHER,                          /* defport */
   CURLPROTO_GOPHER,                     /* protocol */
   CURLPROTO_GOPHER,                     /* family */
@@ -98,7 +97,6 @@ const struct Curl_handler Curl_handler_gophers = {
   ZERO_NULL,                            /* disconnect */
   ZERO_NULL,                            /* readwrite */
   ZERO_NULL,                            /* connection_check */
-  ZERO_NULL,                            /* attach connection */
   PORT_GOPHER,                          /* defport */
   CURLPROTO_GOPHERS,                    /* protocol */
   CURLPROTO_GOPHER,                     /* family */

@@ -78,6 +78,7 @@
 #include "strcase.h"
 #include "vtls/vtls.h"
 #include "connect.h"
+#include "strerror.h"
 #include "select.h"
 #include "multiif.h"
 #include "url.h"
@@ -135,7 +136,6 @@ const struct Curl_handler Curl_handler_smtp = {
   smtp_disconnect,                  /* disconnect */
   ZERO_NULL,                        /* readwrite */
   ZERO_NULL,                        /* connection_check */
-  ZERO_NULL,                        /* attach connection */
   PORT_SMTP,                        /* defport */
   CURLPROTO_SMTP,                   /* protocol */
   CURLPROTO_SMTP,                   /* family */
@@ -164,7 +164,6 @@ const struct Curl_handler Curl_handler_smtps = {
   smtp_disconnect,                  /* disconnect */
   ZERO_NULL,                        /* readwrite */
   ZERO_NULL,                        /* connection_check */
-  ZERO_NULL,                        /* attach connection */
   PORT_SMTPS,                       /* defport */
   CURLPROTO_SMTPS,                  /* protocol */
   CURLPROTO_SMTP,                   /* family */
@@ -307,7 +306,7 @@ static void state(struct Curl_easy *data, smtpstate newstate)
   };
 
   if(smtpc->state != newstate)
-    infof(data, "SMTP %p state change from %s to %s",
+    infof(data, "SMTP %p state change from %s to %s\n",
           (void *)smtpc, names[smtpc->state], names[newstate]);
 #endif
 
@@ -396,8 +395,7 @@ static CURLcode smtp_perform_upgrade_tls(struct Curl_easy *data)
   /* Start the SSL connection */
   struct connectdata *conn = data->conn;
   struct smtp_conn *smtpc = &conn->proto.smtpc;
-  CURLcode result = Curl_ssl_connect_nonblocking(data, conn, FALSE,
-                                                 FIRSTSOCKET,
+  CURLcode result = Curl_ssl_connect_nonblocking(data, conn, FIRSTSOCKET,
                                                  &smtpc->ssldone);
 
   if(!result) {
@@ -484,7 +482,7 @@ static CURLcode smtp_perform_authentication(struct Curl_easy *data)
       state(data, SMTP_AUTH);
     else {
       /* Other mechanisms not supported */
-      infof(data, "No known authentication mechanisms supported!");
+      infof(data, "No known authentication mechanisms supported!\n");
       result = CURLE_LOGIN_DENIED;
     }
   }
@@ -834,10 +832,6 @@ static CURLcode smtp_state_starttls_resp(struct Curl_easy *data,
   CURLcode result = CURLE_OK;
   (void)instate; /* no use for this yet */
 
-  /* Pipelining in response is forbidden. */
-  if(data->conn->proto.smtpc.pp.cache_size)
-    return CURLE_WEIRD_SERVER_REPLY;
-
   if(smtpcode != 220) {
     if(data->set.use_ssl != CURLUSESSL_TRY) {
       failf(data, "STARTTLS denied, code %d", smtpcode);
@@ -900,7 +894,7 @@ static CURLcode smtp_state_ehlo_resp(struct Curl_easy *data,
       for(;;) {
         size_t llen;
         size_t wordlen;
-        unsigned short mechbit;
+        unsigned int mechbit;
 
         while(len &&
               (*line == ' ' || *line == '\t' ||
@@ -1262,7 +1256,7 @@ static CURLcode smtp_multi_statemach(struct Curl_easy *data, bool *done)
   struct smtp_conn *smtpc = &conn->proto.smtpc;
 
   if((conn->handler->flags & PROTOPT_SSL) && !smtpc->ssldone) {
-    result = Curl_ssl_connect_nonblocking(data, conn, FALSE,
+    result = Curl_ssl_connect_nonblocking(data, conn,
                                           FIRSTSOCKET, &smtpc->ssldone);
     if(result || !smtpc->ssldone)
       return result;
@@ -1459,7 +1453,7 @@ static CURLcode smtp_perform(struct Curl_easy *data, bool *connected,
   struct connectdata *conn = data->conn;
   struct SMTP *smtp = data->req.p.smtp;
 
-  DEBUGF(infof(data, "DO phase starts"));
+  DEBUGF(infof(data, "DO phase starts\n"));
 
   if(data->set.opt_no_body) {
     /* Requested no body means no transfer */
@@ -1499,7 +1493,7 @@ static CURLcode smtp_perform(struct Curl_easy *data, bool *connected,
   *connected = conn->bits.tcpconnect[FIRSTSOCKET];
 
   if(*dophase_done)
-    DEBUGF(infof(data, "DO phase is complete"));
+    DEBUGF(infof(data, "DO phase is complete\n"));
 
   return result;
 }
@@ -1583,11 +1577,11 @@ static CURLcode smtp_doing(struct Curl_easy *data, bool *dophase_done)
   CURLcode result = smtp_multi_statemach(data, dophase_done);
 
   if(result)
-    DEBUGF(infof(data, "DO phase failed"));
+    DEBUGF(infof(data, "DO phase failed\n"));
   else if(*dophase_done) {
     result = smtp_dophase_done(data, FALSE /* not connected */);
 
-    DEBUGF(infof(data, "DO phase is complete"));
+    DEBUGF(infof(data, "DO phase is complete\n"));
   }
 
   return result;
@@ -1827,7 +1821,7 @@ CURLcode Curl_smtp_escape_eob(struct Curl_easy *data, const ssize_t nread)
       return CURLE_OUT_OF_MEMORY;
     }
   }
-  DEBUGASSERT((size_t)data->set.upload_buffer_size >= (size_t)nread);
+  DEBUGASSERT(data->set.upload_buffer_size >= (size_t)nread);
 
   /* Have we already sent part of the EOB? */
   eob_sent = smtp->eob;

@@ -74,6 +74,7 @@
 #include "strcase.h"
 #include "vtls/vtls.h"
 #include "connect.h"
+#include "strerror.h"
 #include "select.h"
 #include "multiif.h"
 #include "url.h"
@@ -135,7 +136,6 @@ const struct Curl_handler Curl_handler_imap = {
   imap_disconnect,                  /* disconnect */
   ZERO_NULL,                        /* readwrite */
   ZERO_NULL,                        /* connection_check */
-  ZERO_NULL,                        /* attach connection */
   PORT_IMAP,                        /* defport */
   CURLPROTO_IMAP,                   /* protocol */
   CURLPROTO_IMAP,                   /* family */
@@ -164,7 +164,6 @@ const struct Curl_handler Curl_handler_imaps = {
   imap_disconnect,                  /* disconnect */
   ZERO_NULL,                        /* readwrite */
   ZERO_NULL,                        /* connection_check */
-  ZERO_NULL,                        /* attach connection */
   PORT_IMAPS,                       /* defport */
   CURLPROTO_IMAPS,                  /* protocol */
   CURLPROTO_IMAP,                   /* family */
@@ -413,7 +412,7 @@ static void state(struct Curl_easy *data, imapstate newstate)
   };
 
   if(imapc->state != newstate)
-    infof(data, "IMAP %p state change from %s to %s",
+    infof(data, "IMAP %p state change from %s to %s\n",
           (void *)imapc, names[imapc->state], names[newstate]);
 #endif
 
@@ -474,8 +473,8 @@ static CURLcode imap_perform_upgrade_tls(struct Curl_easy *data,
 {
   /* Start the SSL connection */
   struct imap_conn *imapc = &conn->proto.imapc;
-  CURLcode result = Curl_ssl_connect_nonblocking(data, conn, FALSE,
-                                                 FIRSTSOCKET, &imapc->ssldone);
+  CURLcode result = Curl_ssl_connect_nonblocking(data, conn, FIRSTSOCKET,
+                                                 &imapc->ssldone);
 
   if(!result) {
     if(imapc->state != IMAP_UPGRADETLS)
@@ -605,7 +604,7 @@ static CURLcode imap_perform_authentication(struct Curl_easy *data,
       result = imap_perform_login(data, conn);
     else {
       /* Other mechanisms not supported */
-      infof(data, "No known authentication mechanisms supported!");
+      infof(data, "No known authentication mechanisms supported!\n");
       result = CURLE_LOGIN_DENIED;
     }
   }
@@ -860,7 +859,7 @@ static CURLcode imap_state_servergreet_resp(struct Curl_easy *data,
     /* PREAUTH */
     struct imap_conn *imapc = &conn->proto.imapc;
     imapc->preauth = TRUE;
-    infof(data, "PREAUTH connection, already authenticated!");
+    infof(data, "PREAUTH connection, already authenticated!\n");
   }
   else if(imapcode != IMAP_RESP_OK) {
     failf(data, "Got unexpected imap-server response");
@@ -920,7 +919,7 @@ static CURLcode imap_state_capability_resp(struct Curl_easy *data,
       /* Do we have a SASL based authentication mechanism? */
       else if(wordlen > 5 && !memcmp(line, "AUTH=", 5)) {
         size_t llen;
-        unsigned short mechbit;
+        unsigned int mechbit;
 
         line += 5;
         wordlen -= 5;
@@ -934,18 +933,22 @@ static CURLcode imap_state_capability_resp(struct Curl_easy *data,
       line += wordlen;
     }
   }
-  else if(data->set.use_ssl && !conn->ssl[FIRSTSOCKET].use) {
-    /* PREAUTH is not compatible with STARTTLS. */
-    if(imapcode == IMAP_RESP_OK && imapc->tls_supported && !imapc->preauth) {
-      /* Switch to TLS connection now */
-      result = imap_perform_starttls(data, conn);
+  else if(imapcode == IMAP_RESP_OK) {
+    if(data->set.use_ssl && !conn->ssl[FIRSTSOCKET].use) {
+      /* We don't have a SSL/TLS connection yet, but SSL is requested */
+      if(imapc->tls_supported)
+        /* Switch to TLS connection now */
+        result = imap_perform_starttls(data, conn);
+      else if(data->set.use_ssl == CURLUSESSL_TRY)
+        /* Fallback and carry on with authentication */
+        result = imap_perform_authentication(data, conn);
+      else {
+        failf(data, "STARTTLS not supported.");
+        result = CURLE_USE_SSL_FAILED;
+      }
     }
-    else if(data->set.use_ssl <= CURLUSESSL_TRY)
+    else
       result = imap_perform_authentication(data, conn);
-    else {
-      failf(data, "STARTTLS not available.");
-      result = CURLE_USE_SSL_FAILED;
-    }
   }
   else
     result = imap_perform_authentication(data, conn);
@@ -962,10 +965,6 @@ static CURLcode imap_state_starttls_resp(struct Curl_easy *data,
   struct connectdata *conn = data->conn;
 
   (void)instate; /* no use for this yet */
-
-  /* Pipelining in response is forbidden. */
-  if(data->conn->proto.imapc.pp.cache_size)
-    return CURLE_WEIRD_SERVER_REPLY;
 
   if(imapcode != IMAP_RESP_OK) {
     if(data->set.use_ssl != CURLUSESSL_TRY) {
@@ -1142,7 +1141,7 @@ static CURLcode imap_state_fetch_resp(struct Curl_easy *data,
   }
 
   if(parsed) {
-    infof(data, "Found %" CURL_FORMAT_CURL_OFF_T " bytes to download",
+    infof(data, "Found %" CURL_FORMAT_CURL_OFF_T " bytes to download\n",
           size);
     Curl_pgrsSetDownloadSize(data, size);
 
@@ -1168,7 +1167,7 @@ static CURLcode imap_state_fetch_resp(struct Curl_easy *data,
       data->req.bytecount += chunk;
 
       infof(data, "Written %zu bytes, %" CURL_FORMAT_CURL_OFF_TU
-            " bytes are left for transfer", chunk, size - chunk);
+            " bytes are left for transfer\n", chunk, size - chunk);
 
       /* Have we used the entire cache or just part of it?*/
       if(pp->cache_size > chunk) {
@@ -1368,7 +1367,7 @@ static CURLcode imap_multi_statemach(struct Curl_easy *data, bool *done)
   struct imap_conn *imapc = &conn->proto.imapc;
 
   if((conn->handler->flags & PROTOPT_SSL) && !imapc->ssldone) {
-    result = Curl_ssl_connect_nonblocking(data, conn, FALSE,
+    result = Curl_ssl_connect_nonblocking(data, conn,
                                           FIRSTSOCKET, &imapc->ssldone);
     if(result || !imapc->ssldone)
       return result;
@@ -1542,7 +1541,7 @@ static CURLcode imap_perform(struct Curl_easy *data, bool *connected,
   struct imap_conn *imapc = &conn->proto.imapc;
   bool selected = FALSE;
 
-  DEBUGF(infof(data, "DO phase starts"));
+  DEBUGF(infof(data, "DO phase starts\n"));
 
   if(data->set.opt_no_body) {
     /* Requested no body means no transfer */
@@ -1589,7 +1588,7 @@ static CURLcode imap_perform(struct Curl_easy *data, bool *connected,
   *connected = conn->bits.tcpconnect[FIRSTSOCKET];
 
   if(*dophase_done)
-    DEBUGF(infof(data, "DO phase is complete"));
+    DEBUGF(infof(data, "DO phase is complete\n"));
 
   return result;
 }
@@ -1681,11 +1680,11 @@ static CURLcode imap_doing(struct Curl_easy *data, bool *dophase_done)
   CURLcode result = imap_multi_statemach(data, dophase_done);
 
   if(result)
-    DEBUGF(infof(data, "DO phase failed"));
+    DEBUGF(infof(data, "DO phase failed\n"));
   else if(*dophase_done) {
     result = imap_dophase_done(data, FALSE /* not connected */);
 
-    DEBUGF(infof(data, "DO phase is complete"));
+    DEBUGF(infof(data, "DO phase is complete\n"));
   }
 
   return result;
@@ -2016,7 +2015,7 @@ static CURLcode imap_parse_url_path(struct Curl_easy *data)
       return result;
     }
 
-    DEBUGF(infof(data, "IMAP URL parameter '%s' = '%s'", name, value));
+    DEBUGF(infof(data, "IMAP URL parameter '%s' = '%s'\n", name, value));
 
     /* Process the known hierarchical parameters (UIDVALIDITY, UID, SECTION and
        PARTIAL) stripping of the trailing slash character if it is present.

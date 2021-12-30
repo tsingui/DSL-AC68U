@@ -120,5 +120,5 @@ camellia128_set_encrypt_key (struct camellia128_ctx *ctx,
   subkey[24] = k0; subkey[25] = k1;
 
   /* Common final processing */
-  _nettle_camellia_absorb (_CAMELLIA128_NKEYS, ctx->keys, subkey);
+  _camellia_absorb (_CAMELLIA128_NKEYS, ctx->keys, subkey);
 }

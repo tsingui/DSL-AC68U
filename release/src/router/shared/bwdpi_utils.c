@@ -124,7 +124,7 @@ void erase_symbol(char *old, char *sym)
 		memset(buf, 0, sizeof(buf));
 		strLen = FindPos - old;
 		strncpy(buf, old, strLen);
-		strlcat(buf, FindPos+1, sizeof(buf));
+		strcat(buf, FindPos+1);
 		strcpy(old, buf);
 		FindPos = strstr(old, sym);
 	}

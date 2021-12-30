@@ -1,6 +1,5 @@
 /* Collect URLs from HTML source.
-   Copyright (C) 1998-2012, 2015, 2018-2021 Free Software Foundation,
-   Inc.
+   Copyright (C) 1998-2012, 2015, 2018 Free Software Foundation, Inc.
 
 This file is part of GNU Wget.
 
@@ -837,11 +836,7 @@ get_urls_html_fm (const char *file, const struct file_memory *fm,
 #endif
   xfree (meta_charset);
 
-  if (ctx.nofollow) {
-      logprintf(LOG_VERBOSE, _("no-follow attribute found in %s. Will not follow any links on this page\n"), file);
-  }
   DEBUGP (("no-follow in %s: %d\n", file, ctx.nofollow));
-
   if (meta_disallow_follow)
     *meta_disallow_follow = ctx.nofollow;
 
@@ -963,7 +958,6 @@ get_urls_file (const char *file)
   return head;
 }
 
-#if defined DEBUG_MALLOC || defined TESTING
 void
 cleanup_html_url (void)
 {
@@ -974,4 +968,3 @@ cleanup_html_url (void)
   if (interesting_attributes)
     hash_table_destroy (interesting_attributes);
 }
-#endif

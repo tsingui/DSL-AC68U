@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -479,7 +479,7 @@ static curl_socket_t sockit(curl_socket_t fd)
     return CURL_SOCKET_BAD;
   }
   /* reserved, should be zero */
-  if(buffer[SOCKS5_RESERVED]) {
+  if(buffer[SOCKS5_RESERVED] != 0) {
     logmsg("Request COMMAND byte not %d", config.reqcmd);
     return CURL_SOCKET_BAD;
   }
@@ -882,9 +882,8 @@ int main(int argc, char *argv[])
   curl_socket_t sock = CURL_SOCKET_BAD;
   curl_socket_t msgsock = CURL_SOCKET_BAD;
   int wrotepidfile = 0;
-  int wroteportfile = 0;
   const char *pidname = ".socksd.pid";
-  const char *portname = NULL; /* none by default */
+  const char *portfile = NULL;
   bool juggle_again;
   int error;
   int arg = 1;
@@ -908,7 +907,7 @@ int main(int argc, char *argv[])
     else if(!strcmp("--portfile", argv[arg])) {
       arg++;
       if(argc>arg)
-        portname = argv[arg++];
+        portfile = argv[arg++];
     }
     else if(!strcmp("--config", argv[arg])) {
       arg++;
@@ -1015,9 +1014,9 @@ int main(int argc, char *argv[])
     goto socks5_cleanup;
   }
 
-  if(portname) {
-    wroteportfile = write_portfile(portname, port);
-    if(!wroteportfile) {
+  if(portfile) {
+    wrotepidfile = write_portfile(portfile, port);
+    if(!wrotepidfile) {
       goto socks5_cleanup;
     }
   }
@@ -1036,8 +1035,6 @@ socks5_cleanup:
 
   if(wrotepidfile)
     unlink(pidname);
-  if(wroteportfile)
-    unlink(portname);
 
   restore_signal_handlers(false);
 

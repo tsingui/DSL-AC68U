@@ -58,77 +58,78 @@
 static bool
 get_console_input_win32(const char *prompt, const bool echo, char *input, const int capacity)
 {
+    HANDLE in = INVALID_HANDLE_VALUE;
+    HANDLE err = INVALID_HANDLE_VALUE;
+    DWORD len = 0;
+
     ASSERT(prompt);
     ASSERT(input);
     ASSERT(capacity > 0);
 
     input[0] = '\0';
 
-    HANDLE in = GetStdHandle(STD_INPUT_HANDLE);
-    int orig_stderr = get_orig_stderr(); // guaranteed to be always valid
-    if ((in == INVALID_HANDLE_VALUE)
-        || win32_service_interrupt(&win32_signal)
-        || (_write(orig_stderr, prompt, strlen(prompt)) == -1))
-    {
-        msg(M_WARN|M_ERRNO, "get_console_input_win32(): unexpected error");
-        return false;
-    }
+    in = GetStdHandle(STD_INPUT_HANDLE);
+    err = get_orig_stderr();
 
-    bool is_console = (GetFileType(in) == FILE_TYPE_CHAR);
-    DWORD flags_save = 0;
-    int status = 0;
-    WCHAR *winput;
-
-    if (is_console)
+    if (in != INVALID_HANDLE_VALUE
+        && err != INVALID_HANDLE_VALUE
+        && !win32_service_interrupt(&win32_signal)
+        && WriteFile(err, prompt, strlen(prompt), &len, NULL))
     {
-        if (GetConsoleMode(in, &flags_save))
+        bool is_console = (GetFileType(in) == FILE_TYPE_CHAR);
+        DWORD flags_save = 0;
+        int status = 0;
+        WCHAR *winput;
+
+        if (is_console)
         {
-            DWORD flags = ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT;
-            if (echo)
+            if (GetConsoleMode(in, &flags_save))
             {
-                flags |= ENABLE_ECHO_INPUT;
+                DWORD flags = ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT;
+                if (echo)
+                {
+                    flags |= ENABLE_ECHO_INPUT;
+                }
+                SetConsoleMode(in, flags);
             }
-            SetConsoleMode(in, flags);
+            else
+            {
+                is_console = 0;
+            }
+        }
+
+        if (is_console)
+        {
+            winput = malloc(capacity * sizeof(WCHAR));
+            if (winput == NULL)
+            {
+                return false;
+            }
+
+            status = ReadConsoleW(in, winput, capacity, &len, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, winput, len, input, capacity, NULL, NULL);
+            free(winput);
         }
         else
         {
-            is_console = 0;
+            status = ReadFile(in, input, capacity, &len, NULL);
         }
-    }
 
-    DWORD len = 0;
+        string_null_terminate(input, (int)len, capacity);
+        chomp(input);
 
-    if (is_console)
-    {
-        winput = malloc(capacity * sizeof(WCHAR));
-        if (winput == NULL)
+        if (!echo)
         {
-            return false;
+            WriteFile(err, "\r\n", 2, &len, NULL);
         }
-
-        status = ReadConsoleW(in, winput, capacity, &len, NULL);
-        WideCharToMultiByte(CP_UTF8, 0, winput, len, input, capacity, NULL, NULL);
-        free(winput);
-    }
-    else
-    {
-        status = ReadFile(in, input, capacity, &len, NULL);
-    }
-
-    string_null_terminate(input, (int)len, capacity);
-    chomp(input);
-
-    if (!echo)
-    {
-        _write(orig_stderr, "\r\n", 2);
-    }
-    if (is_console)
-    {
-        SetConsoleMode(in, flags_save);
-    }
-    if (status && !win32_service_interrupt(&win32_signal))
-    {
-        return true;
+        if (is_console)
+        {
+            SetConsoleMode(in, flags_save);
+        }
+        if (status && !win32_service_interrupt(&win32_signal))
+        {
+            return true;
+        }
     }
 
     return false;

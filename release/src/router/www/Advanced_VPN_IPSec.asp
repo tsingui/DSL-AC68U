@@ -11,7 +11,6 @@
 <title><#Web_Title#> - IP Sec</title>
 <link rel="stylesheet" type="text/css" href="index_style.css"> 
 <link rel="stylesheet" type="text/css" href="form_style.css">
-<link rel="stylesheet" type="text/css" href="pwdmeter.css">
 
 <script type="text/javascript" src="state.js"></script>
 <script type="text/javascript" src="general.js"></script>
@@ -95,16 +94,6 @@
 .faq_link {
 	margin-right: 10px;
 }
-#preshared_key_strength{
-	margin-left: 254px;
-	margin-top: -25px;
-	position: absolute;
-}
-#client_pwd_strength{
-	margin-top: 6px;
-	display: flex;
-	justify-content: center;
-}
 </style>
 <script>
 <% wanlink(); %>
@@ -114,20 +103,13 @@ var ipsec_server_enable = '<% nvram_get("ipsec_server_enable"); %>';
 var ipsec_connect_status_array = new Array();
 var ddns_enable_x = '<% nvram_get("ddns_enable_x"); %>';
 var ddns_hostname_x = '<% nvram_get("ddns_hostname_x"); %>';
-var conn_name_array = new Array();
-
-var faq_href_windows = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=114";
-var faq_href_macOS = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=115";
-var faq_href_iPhone = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=116";
-var faq_href_android = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=117";
-var faq_href_port_forwarding = "https://nw-dlcdnet.asus.com/support/forward.html?model=&type=Faq&lang="+ui_lang+"&kw=&num=118";
 
 function initial(){
 	show_menu();
 
 	document.getElementById("ipsec_profile_1").value = ipsec_profile_1;
 
-	var vpn_server_array = { "PPTP" : ["PPTP", "Advanced_VPN_PPTP.asp"], "OpenVPN" : ["OpenVPN", "Advanced_VPN_OpenVPN.asp"], "IPSEC" : ["IPSec VPN", "Advanced_VPN_IPSec.asp"], "Wireguard" : ["Wireguard VPN", "Advanced_WireguardServer_Content.asp"]};
+	var vpn_server_array = { "PPTP" : ["PPTP", "Advanced_VPN_PPTP.asp"], "OpenVPN" : ["OpenVPN", "Advanced_VPN_OpenVPN.asp"], "IPSEC" : ["IPSec VPN", "Advanced_VPN_IPSec.asp"]};
 	if(!pptpd_support) {
 		delete vpn_server_array.PPTP;
 	}
@@ -137,10 +119,6 @@ function initial(){
 	if(!ipsec_srv_support) {
 		delete vpn_server_array.IPSEC;
 	}
-	if(!wireguard_support) {
-		delete vpn_server_array.Wireguard;
-	}
-
 	$('#divSwitchMenu').html(gen_switch_menu(vpn_server_array, "IPSEC"));
 
 	ipsecShowAndHide(ipsec_server_enable);
@@ -228,36 +206,14 @@ function initial(){
 	setTimeout("show_warning_message();", 1000);
 
 	//set FAQ URL
-	document.getElementById("faq_windows").href=faq_href_windows;
-	document.getElementById("faq_macOS").href=faq_href_macOS;
-	document.getElementById("faq_iPhone").href=faq_href_iPhone;
-	document.getElementById("faq_android").href=faq_href_android;
-
-	$("#preshared_key_strength").append(Get_Component_PWD_Strength_Meter());
-	if($("#ipsec_preshared_key").val() == "")
-		$("#preshared_key_strength").css("display", "none");
-	else
-		chkPass($("#ipsec_preshared_key").val(), "", $("#preshared_key_strength"));
-	$("#ipsec_preshared_key").keyup(function(){
-		chkPass($(this).val(), "", $("#preshared_key_strength"));
-	});
-	$("#ipsec_preshared_key").blur(function(){
-		if($(this).val() == "")
-			$("#preshared_key_strength").css("display", "none");
-	});
-
-	$("#client_pwd_strength").append(Get_Component_PWD_Strength_Meter());
-	if($("[name='ipsec_client_list_password']").val() == "")
-		$("#client_pwd_strength").css("display", "none");
-	else
-		chkPass($("[name='ipsec_client_list_password']").val(), "", $("#client_pwd_strength"));
-	$("[name='ipsec_client_list_password']").keyup(function(){
-		chkPass($(this).val(), "", $("#client_pwd_strength"));
-	});
-	$("[name='ipsec_client_list_password']").blur(function(){
-		if($(this).val() == "")
-			$("#client_pwd_strength").css("display", "none");
-	});
+	//	https://www.asus.com/support/FAQ/1044397
+	httpApi.faqURL("1044397", function(url){document.getElementById("faq_windows").href=url;});
+	//	https://www.asus.com/support/FAQ/1033575
+	httpApi.faqURL("1033575", function(url){document.getElementById("faq_macOS").href=url;});
+	//	https://www.asus.com/support/FAQ/1033574
+	httpApi.faqURL("1033574", function(url){document.getElementById("faq_iPhone").href=url;});
+	//	https://www.asus.com/support/FAQ/1033572
+	httpApi.faqURL("1033572", function(url){document.getElementById("faq_android").href=url;});
 }
 
 var MAX_RETRY_NUM = 5;
@@ -265,7 +221,7 @@ var external_ip_retry_cnt = MAX_RETRY_NUM;
 function show_warning_message(){
 	var set_ddns_text = '<a href="../Advanced_ASUSDDNS_Content.asp" target="_blank" style="text-decoration: underline; font-family:Lucida Console;"><#vpn_ipsec_set_DDNS#></a>';
 	var set_ip_and_ddns_text = wanlink_ipaddr() + ', ' + set_ddns_text;
-	if(realip_support && (based_modelid == "BRT-AC828" || wans_mode != "lb")){
+	if(realip_support && (based_modelid == "BRT-AC828"|| wans_mode != "lb")){
 		if(realip_state != "2" && external_ip_retry_cnt > 0){
 			if( external_ip_retry_cnt == MAX_RETRY_NUM )
 				get_real_ip();
@@ -277,7 +233,8 @@ function show_warning_message(){
 				document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>";
 				document.getElementById("privateIP_notes").style.display = "";
 				$(".general_server_addr").html("-");
-				document.getElementById("faq_port_forwarding").href=faq_href_port_forwarding;	//this id is include in string : #vpn_privateIP_hint#
+				//	https://www.asus.com/support/FAQ/1033906
+				httpApi.faqURL("1033906", function(url){document.getElementById("faq_port_forwarding").href=url;});	//this id is include in string : #vpn_privateIP_hint#
 			}
 			else {
 				if(ddns_enable_x == "1" && ddns_hostname_x != "") {
@@ -295,7 +252,8 @@ function show_warning_message(){
 				document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>";
 				document.getElementById("privateIP_notes").style.display = "";
 				$(".general_server_addr").html("-");
-				document.getElementById("faq_port_forwarding").href=faq_href_port_forwarding;	//this id is include in string : #vpn_privateIP_hint#
+				//	https://www.asus.com/support/FAQ/1033906
+				httpApi.faqURL("1033906", function(url){document.getElementById("faq_port_forwarding").href=url;});	//this id is include in string : #vpn_privateIP_hint#
 			}
 			else {
 				if(ddns_enable_x == "1" && ddns_hostname_x != "") {
@@ -313,7 +271,8 @@ function show_warning_message(){
 		document.getElementById("privateIP_notes").innerHTML = "<#vpn_privateIP_hint#>";
 		document.getElementById("privateIP_notes").style.display = "";
 		$(".general_server_addr").html("-");
-		document.getElementById("faq_port_forwarding").href=faq_href_port_forwarding;	//this id is include in string : #vpn_privateIP_hint#
+		//	https://www.asus.com/support/FAQ/1033906
+		httpApi.faqURL("1033906", function(url){document.getElementById("faq_port_forwarding").href=url;});	//this id is include in string : #vpn_privateIP_hint#
 	}
 	else {
 		if(ddns_enable_x == "1" && ddns_hostname_x != "") {
@@ -437,7 +396,7 @@ function addRow_Group(upper) {
 			return false;
 		}
 		else if(valid_password.value.length > 0 && valid_password.value.length < 5) {
-			alert("Password should be 5 to 32 characters.");/* untranslated */
+			alert("* <#JS_short_password#>");
 			valid_password.focus();
 			return false;
 		}
@@ -473,7 +432,6 @@ function addRow_Group(upper) {
 		username_obj.value = "";
 		password_obj.value = "";
 		ike_obj.value = "3";
-		$("#client_pwd_strength").css("display", "none");
 		showipsec_clientlist();
 	}
 }
@@ -551,7 +509,7 @@ function validForm() {
 		//1.check LAN IP
 		ipConflict = checkIPConflict("LAN", ipsecLanIPAddr, ipsecLanNetMask);
 		if(ipConflict.state) {
-			alert("<#JS_conflict_LANIP#>: " + ipConflict.ipAddr + ",\n" + "<#Network_segment#>: " + ipConflict.netLegalRangeStart + " ~ " + ipConflict.netLegalRangeEnd);
+			alert("Conflict with LAN IP: " + ipConflict.ipAddr + ",\n" + "Network segment is " + ipConflict.netLegalRangeStart + " ~ " + ipConflict.netLegalRangeEnd);
 			document.form.ipsec_clients_start.focus();
 			document.form.ipsec_clients_start.select();
 			return false;
@@ -648,7 +606,7 @@ function applyRule() {
 			document.form.ipsec_profile_2.disabled = false;
 			document.form.ipsec_client_list_1.disabled = false;
 			document.form.ipsec_client_list_2.disabled = false;
-			document.form.ipsec_profile_2.value = "4>Host-to-Netv2>null>null>wan>>0>null>null>null>null>null>null>1>"+document.form.ipsec_clients_start.value+">null>2>null>null>0>"+cert_address+">null>null>0>>>eap-mschapv2>1>500>4500>10>1>null>null>null>null><<<<>1>pubkey>svrCert.pem>always>svrKey.pem>%identity";
+			document.form.ipsec_profile_2.value = "4>Host-to-Netv2>null>null>wan>>0>null>null>null>null>null>null>1>10.10.10>null>2>null>null>0>"+cert_address+">null>null>0>>>eap-mschapv2>1>500>4500>10>1>null>null>null>null><<<<>1>pubkey>svrCert.pem>always>svrKey.pem>%identity";
 
 			var ipsec_client_list_1 = "";
 			var ipsec_client_list_2 = "";
@@ -733,17 +691,10 @@ function setClientsEnd() {
 
 function update_connect_status() {
 	var get_ipsec_conn = httpApi.hookGet("get_ipsec_conn", true);
-	var totalcnt = 0;
-
-	conn_name_array = [];
-	$(".general_connection_status").html("-");
-
+	var parseArray = [];
+	ipsec_connect_status_array["Host-to-Net"] = [];
 	get_ipsec_conn.forEach(function(item, index, array){
-		var parseArray = [];
-
-		ipsec_connect_status_array[get_ipsec_conn[index][0]] = [];
-
-		if(item[0] != undefined && item[0] == get_ipsec_conn[index][0] && item[1] != undefined){
+		if(item[0] != undefined && item[0] == "Host-to-Net" && item[1] != undefined){
 			var itemRow = item[1].split('<');
 			for(var i = 0; i < itemRow.length; i += 1) {
 				if(itemRow[i] != "") {
@@ -759,33 +710,32 @@ function update_connect_status() {
 					}
 				}
 			}
-			ipsec_connect_status_array[get_ipsec_conn[index][0]] = parseArray;
-			conn_name_array.push(get_ipsec_conn[index][0]);
-			totalcnt += ipsec_connect_status_array[get_ipsec_conn[index][0]].length;
 		}
 	});
 
-	if(totalcnt > 0) {
+	ipsec_connect_status_array["Host-to-Net"] = parseArray;
+	var connected_count = ipsec_connect_status_array["Host-to-Net"].length;
+	if(connected_count > 0) {
 		var code = "";
-		code +='<a class="hintstyle2" href="javascript:void(0);" onClick="showIPSecClients(conn_name_array, event);">';
-		code +='<#btn_Enabled#>(' + totalcnt + ')</a>';
+		code +='<a class="hintstyle2" href="javascript:void(0);" onClick="showIPSecClients(\'Host-to-Net\', event);">';
+		code +='<#btn_Enabled#>(' + connected_count + ')</a>';
 		$(".general_connection_status").html(code);
 	}
+	else
+		$(".general_connection_status").html("-");
 
 	setTimeout("update_connect_status();",3000);
 }
-
 function close_connect_status() {
 	$("#connection_ipsec_profile_panel").fadeOut(300);
 }
-function showIPSecClients(ipsec_conn_name_array, e) {
-	var html = "";
-
+function showIPSecClients(profileName, e) {
 	$("#connection_ipsec_profile_panel").fadeIn(300);
 	$("#connection_ipsec_profile_panel").css("position", "absolute");
 	$("#connection_ipsec_profile_panel").css("top", "440px");
 	$("#connection_ipsec_profile_panel").css("left", "225px");
-
+	
+	var html = "";
 	html += "<div class='ipsec_connect_status_title_bg'>";
 	html += "<div class='ipsec_connect_status_title' style='width:240px;'>Remote IP</div>";/*untranslated*/
 	html += "<div class='ipsec_connect_status_title'><#statusTitle_Client#></div>";
@@ -795,29 +745,22 @@ function showIPSecClients(ipsec_conn_name_array, e) {
 	html += "<div class='ipsec_connect_status_close'><a onclick='close_connect_status();'><img width='18px' height='18px' src=\"/images/button-close.png\" onmouseover='this.src=\"/images/button-close2.png\"' onmouseout='this.src=\"/images/button-close.png\"' border='0'></a></div>";
 	html += "</div>";
 	html += "<div style='clear:both;'></div>";
-	$("#connection_ipsec_profile_panel").html(html);
-	html = "";
 
-	//for loop to go through all connection names, while the forEach is to go through all connections under the same connection name.
 	var statusText = [[""], ["<#Connected#>"], ["<#Connecting_str#>"], ["<#Connecting_str#>"]];
-	for(var i = 0; i < ipsec_conn_name_array.length; i += 1) {
-		ipsec_connect_status_array[ipsec_conn_name_array[i]].forEach(function(item, index, array){
-			if(item != "") {
-				html += "<div class='ipsec_connect_status_content_bg'>";
-				html += "<div class='ipsec_connect_status_content' style='width:240px;word-wrap:break-word;word-break:break-all;'>" + item[0] + "</div>";
-				html += "<div class='ipsec_connect_status_content'>" + statusText[item[1]] + "</div>";
-				html += "<div class='ipsec_connect_status_content'>" + item[2] + "</div>";
-				html += "<div class='ipsec_connect_status_content'>" + item[3] + "</div>";
-				html += "<div class='ipsec_connect_status_content'>" + item[4] + "</div>";
-				html += "</div>";
-				html += "<div style='clear:both;'></div>";
-			}
-		});
-	}
-
-	$("#connection_ipsec_profile_panel").append(html);
+	ipsec_connect_status_array[profileName].forEach(function(item, index, array){
+		if(item != "") {
+			html += "<div class='ipsec_connect_status_content_bg'>";
+			html += "<div class='ipsec_connect_status_content' style='width:240px;word-wrap:break-word;word-break:break-all;'>" + item[0] + "</div>";
+			html += "<div class='ipsec_connect_status_content'>" + statusText[item[1]] + "</div>";
+			html += "<div class='ipsec_connect_status_content'>" + item[2] + "</div>";
+			html += "<div class='ipsec_connect_status_content'>" + item[3] + "</div>";
+			html += "<div class='ipsec_connect_status_content'>" + item[4] + "</div>";
+			html += "</div>";
+			html += "<div style='clear:both;'></div>";
+		}
+	});
+	$("#connection_ipsec_profile_panel").html(html);
 }
-
 function export_cert(_mode) {
 	var type = $("input[name=ipsec_export_cert]:checked").val();//0:Windows, 1:Mobile
 	if(_mode == "0") {//download
@@ -916,7 +859,7 @@ function export_cert(_mode) {
 									<div style="margin:10px 0 10px 5px;" class="splitLine"></div>
 									<div id="privateIP_notes" class="formfontdesc" style="display:none;color:#FFCC00;"></div>
 									<div class="formfontdesc">
-										<span class="hint-color"><#vpn_ipsec_note#></span>
+										<span style="color:#FC0"><#vpn_ipsec_note#></span>
 									</div>
 
 									<table id="ipsec_general_setting" width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
@@ -972,7 +915,6 @@ function export_cert(_mode) {
 											<th><#vpn_ipsec_PreShared_Key#></th>
 											<td>
 												<input id="ipsec_preshared_key" name="ipsec_preshared_key" type="password" autocapitalization="off" onBlur="switchType(this, false);" onFocus="switchType(this, true);" class="input_25_table" maxlength="32" placeholder="<#vpn_preshared_key_hint#>" autocomplete="off" autocorrect="off" autocapitalize="off">
-												<div id="preshared_key_strength"></div>
 											</td>
 										</tr>
 									</table>
@@ -1004,28 +946,28 @@ function export_cert(_mode) {
 												<th><#IPConnection_x_DNSServer1_itemname#></th>
 												<td>
 													<input type="text" maxlength="15" class="input_15_table" name="ipsec_dns1" onkeypress="return validator.isIPAddr(this, event)" autocomplete="off" autocorrect="off" autocapitalize="off">
-													<span class="hint-color"><#feedback_optional#></span>
+													<span style="color:#FC0"><#feedback_optional#></span>
 												</td>
 											</tr>
 											<tr>
 												<th><#IPConnection_x_DNSServer2_itemname#></th>
 												<td>
 													<input type="text" maxlength="15" class="input_15_table" name="ipsec_dns2" onkeypress="return validator.isIPAddr(this, event)" autocomplete="off" autocorrect="off" autocapitalize="off">
-													<span class="hint-color"><#feedback_optional#></span>
+													<span style="color:#FC0"><#feedback_optional#></span>
 												</td>
 											</tr>
 											<tr>
 												<th><#IPConnection_x_WINSServer1_itemname#></th>
 												<td>
 													<input type="text" maxlength="15" class="input_15_table" name="ipsec_wins1" onkeypress="return validator.isIPAddr(this, event)" autocomplete="off" autocorrect="off" autocapitalize="off">
-													<span class="hint-color"><#feedback_optional#></span>
+													<span style="color:#FC0"><#feedback_optional#></span>
 												</td>
 											</tr>
 											<tr>
 												<th><#IPConnection_x_WINSServer2_itemname#></th>
 												<td>
 													<input type="text" maxlength="15" class="input_15_table" name="ipsec_wins2" onkeypress="return validator.isIPAddr(this, event)" autocomplete="off" autocorrect="off" autocapitalize="off">
-													<span class="hint-color"><#feedback_optional#></span>
+													<span style="color:#FC0"><#feedback_optional#></span>
 												</td>
 											</tr>
 											<tr id="tr_localPublicInterface" style="display:none;">
@@ -1060,7 +1002,7 @@ function export_cert(_mode) {
 													<th><#vpn_ipsec_DPD_Checking_Interval#></th>
 													<td>
 														<input type="text" class="input_3_table" name="ipsec_dpd" maxlength="3" value="10" onKeyPress="return validator.isNumber(this,event)" autocomplete="off" autocorrect="off" autocapitalize="off">
-														<span class="hint-color">(10~900) <#Second#></span>
+														<span style="color:#FC0">(10~900) <#Second#></span>
 													</td>
 												</tr>
 											</table>
@@ -1075,8 +1017,8 @@ function export_cert(_mode) {
 													<th><#vpn_export_cert#></th>
 													<td>
 														<div><#Status_Str#> : <span id="cert_status"></span></div>
-														<div><#vpn_ipsec_cert_to#> : <span id="cert_issueTo"></span></div>
-														<div><#vpn_ipsec_cert_by#> : <span id="cert_issueBy"></span></div>
+														<div>Issue to : <span id="cert_issueTo"></span></div><!-- untranslated -->
+														<div>Issue from : <span id="cert_issueBy"></span></div><!-- untranslated -->
 														<div><#vpn_openvpn_KC_expire#> : <span id="cert_expire"></span></div>
 														<div>
 															<input class="button_gen_dis ipsec_active export" type="button" value="<#btn_Export#>">
@@ -1091,7 +1033,7 @@ function export_cert(_mode) {
 												<tr>
 													<th><a class="hintstyle" href="javascript:void(0);" onClick="openHint(33,2);"><#vpn_ipsec_re_cert#></a></th>
 													<td style="position:relative;">
-														<input class="button_gen_dis ipsec_active renew" type="button" value="<#CTL_renew#>">
+														<input class="button_gen_dis ipsec_active renew" type="button" value="Renew"><!-- untranslated -->
 														<span class="ipsec_inactive renew_hint"><#Status_Inactive#></span>
 														<div class="renewLoadingIcon"></div>
 													</td>
@@ -1123,7 +1065,6 @@ function export_cert(_mode) {
 													</td>
 													<td width="30%">
 														<input type="text" class="input_22_table" maxlength="32" name="ipsec_client_list_password" onKeyPress="return validator.isString(this, event)" autocomplete="off" autocorrect="off" autocapitalize="off">
-														<div id="client_pwd_strength"></div>
 													</td>
 													<td width="30%">
 														<select name="ipsec_client_list_ike" onchange="" class="input_option">

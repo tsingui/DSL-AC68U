@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include "eddsa.h"
-#include "eddsa-internal.h"
 
 #include "ecc-internal.h"
 #include "sha2.h"
@@ -53,11 +52,9 @@ ed25519_sha512_verify (const uint8_t *pub,
   int res;
 #define A scratch
 #define scratch_out (scratch + 3*ecc->p.size)
-
-  sha512_init (&ctx);
   res = (_eddsa_decompress (ecc,
 			    A, pub, scratch_out)
-	 && _eddsa_verify (ecc, &_nettle_ed25519_sha512,
+	 && _eddsa_verify (ecc, &nettle_sha512,
 			   pub, A, &ctx,
 			   length, msg, signature,
 			   scratch_out));

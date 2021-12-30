@@ -514,8 +514,7 @@ hs_intro_received_establish_intro(or_circuit_t *circ, const uint8_t *request,
   switch (first_byte) {
     case TRUNNEL_HS_INTRO_AUTH_KEY_TYPE_LEGACY0:
     case TRUNNEL_HS_INTRO_AUTH_KEY_TYPE_LEGACY1:
-      /* Don't accept version 2 introduction anymore. */
-      goto err;
+      return rend_mid_establish_intro_legacy(circ, request, request_len);
     case TRUNNEL_HS_INTRO_AUTH_KEY_TYPE_ED25519:
       return handle_establish_intro(circ, request, request_len);
     default:

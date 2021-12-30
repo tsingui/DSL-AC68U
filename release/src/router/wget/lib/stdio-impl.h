@@ -1,5 +1,5 @@
 /* Implementation details of FILE streams.
-   Copyright (C) 2007-2008, 2010-2021 Free Software Foundation, Inc.
+   Copyright (C) 2007-2008, 2010-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,16 +18,11 @@
    the same implementation of stdio extension API, except that some fields
    have different naming conventions, or their access requires some casts.  */
 
-/* Glibc 2.28 made _IO_UNBUFFERED and _IO_IN_BACKUP private.  For now, work
-   around this problem by defining them ourselves.  FIXME: Do not rely on glibc
+/* Glibc 2.28 made _IO_IN_BACKUP private.  For now, work around this
+   problem by defining it ourselves.  FIXME: Do not rely on glibc
    internals.  */
-#if defined _IO_EOF_SEEN
-# if !defined _IO_UNBUFFERED
-#  define _IO_UNBUFFERED 0x2
-# endif
-# if !defined _IO_IN_BACKUP
-#  define _IO_IN_BACKUP 0x100
-# endif
+#if !defined _IO_IN_BACKUP && defined _IO_EOF_SEEN
+# define _IO_IN_BACKUP 0x100
 #endif
 
 /* BSD stdio derived implementations.  */
@@ -66,11 +61,6 @@
 #  define _r pub._r
 #  define _w pub._w
 # elif defined __ANDROID__ /* Android */
-#  ifdef __LP64__
-#   define _gl_flags_file_t int
-#  else
-#   define _gl_flags_file_t short
-#  endif
   /* Up to this commit from 2015-10-12
      <https://android.googlesource.com/platform/bionic.git/+/f0141dfab10a4b332769d52fa76631a64741297a>
      the innards of FILE were public, and fp_ub could be defined like for OpenBSD,
@@ -80,8 +70,8 @@
 #  define fp_ ((struct { unsigned char *_p; \
                          int _r; \
                          int _w; \
-                         _gl_flags_file_t _flags; \
-                         _gl_flags_file_t _file; \
+                         int _flags; \
+                         int _file; \
                          struct { unsigned char *_base; size_t _size; } _bf; \
                          int _lbfsize; \
                          void *_cookie; \
@@ -175,7 +165,7 @@
 #  define fp_ fp
 # endif
 
-# if defined _SCO_DS || (defined __SCO_VERSION__ || defined __sysv5__)  /* OpenServer 5, OpenServer 6, UnixWare 7 */
+# if defined _SCO_DS                /* OpenServer */
 #  define _cnt __cnt
 #  define _ptr __ptr
 #  define _base __base

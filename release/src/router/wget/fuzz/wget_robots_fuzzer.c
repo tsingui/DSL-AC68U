@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Free Software Foundation, Inc.
+ * Copyright(c) 2017-2018 Free Software Foundation, Inc.
  *
  * This file is part of GNU Wget.
  *
@@ -63,16 +63,22 @@ FILE *fopen_wgetrc(const char *pathname, const char *mode)
 void exit_wget(int status)
 {
 }
+#else
+void exit(int status)
+{
+}
 #endif
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
+	FILE *fp, *bak;
 	struct robot_specs *specs;
 
 	if (size > 4096) // same as max_len = ... in .options file
 		return 0;
 
-	CLOSE_STDERR
+	bak = stderr;
+	stderr = fopen("/dev/null", "w");
 
 	specs = res_parse((char *) data, (int) size);
 	if (!specs)
@@ -84,7 +90,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	res_cleanup();
 
-	RESTORE_STDERR
+	fclose(stderr);
+	stderr = bak;
 
 	return 0;
 }

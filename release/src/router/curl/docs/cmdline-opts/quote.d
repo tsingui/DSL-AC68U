@@ -1,11 +1,10 @@
 Long: quote
-Arg: <command>
 Short: Q
 Help: Send command(s) to server before transfer
 Protocols: FTP SFTP
 Category: ftp sftp
-Example: --quote "DELE file" ftp://example.com/foo
 ---
+
 Send an arbitrary command to the remote FTP or SFTP server. Quote commands are
 sent BEFORE the transfer takes place (just after the initial PWD command in an
 FTP transfer, to be exact). To make commands take place after a successful
@@ -14,13 +13,12 @@ has changed the working directory, just before the transfer command(s), prefix
 the command with a '+' (this is only supported for FTP). You may specify any
 number of commands.
 
-By default curl will stop at first failure. To make curl continue even if the
-command fails, prefix the command with an asterisk (*). Otherwise, if the
-server returns failure for one of the commands, the entire operation will be
-aborted.
+If the server returns failure for one of the commands, the entire operation
+will be aborted. You must send syntactically correct FTP commands as RFC 959
+defines to FTP servers, or one of the commands listed below to SFTP servers.
 
-You must send syntactically correct FTP commands as RFC 959 defines to FTP
-servers, or one of the commands listed below to SFTP servers.
+Prefix the command with an asterisk (*) to make curl continue even if the
+command fails as by default curl will stop at first failure.
 
 This option can be used multiple times.
 

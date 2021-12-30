@@ -38,7 +38,6 @@
 #include <assert.h>
 
 #include "rsa.h"
-#include "rsa-internal.h"
 
 #include "bignum.h"
 #include "pkcs1.h"

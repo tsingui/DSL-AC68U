@@ -355,17 +355,17 @@ CURLcode Curl_input_ntlm_wb(struct Curl_easy *data,
   }
   else {
     if(*state == NTLMSTATE_LAST) {
-      infof(data, "NTLM auth restarted");
+      infof(data, "NTLM auth restarted\n");
       Curl_http_auth_cleanup_ntlm_wb(conn);
     }
     else if(*state == NTLMSTATE_TYPE3) {
-      infof(data, "NTLM handshake rejected");
+      infof(data, "NTLM handshake rejected\n");
       Curl_http_auth_cleanup_ntlm_wb(conn);
       *state = NTLMSTATE_NONE;
       return CURLE_REMOTE_ACCESS_DENIED;
     }
     else if(*state >= NTLMSTATE_TYPE1) {
-      infof(data, "NTLM handshake failure (internal error)");
+      infof(data, "NTLM handshake failure (internal error)\n");
       return CURLE_REMOTE_ACCESS_DENIED;
     }
 
@@ -426,8 +426,7 @@ CURLcode Curl_output_ntlm_wb(struct Curl_easy *data, struct connectdata *conn,
     /* Use Samba's 'winbind' daemon to support NTLM authentication,
      * by delegating the NTLM challenge/response protocol to a helper
      * in ntlm_auth.
-     * https://web.archive.org/web/20190925164737
-     * /devel.squid-cache.org/ntlm/squid_helper_protocol.html
+     * http://devel.squid-cache.org/ntlm/squid_helper_protocol.html
      * https://www.samba.org/samba/docs/man/manpages-3/winbindd.8.html
      * https://www.samba.org/samba/docs/man/manpages-3/ntlm_auth.1.html
      * Preprocessor symbol 'NTLM_WB_ENABLED' is defined when this
