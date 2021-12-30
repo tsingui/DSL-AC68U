@@ -1620,7 +1620,7 @@ obj-$(HND_ROUTER) += ethctl_lib
 obj-$(HND_ROUTER) += fcctl
 obj-$(HND_ROUTER) += fcctl_lib
 obj-$(HND_ROUTER) += scripts
-obj-$(HND_ROUTER) += stress
+#obj-$(HND_ROUTER) += stress
 obj-$(HND_ROUTER) += vpmstats
 obj-$(HND_ROUTER) += bcm_boot_launcher
 obj-$(HND_ROUTER) += bdmf_shell
@@ -4380,7 +4380,7 @@ inadyn/Makefile: inadyn/configure
 		OpenSSL_CFLAGS="-I$(STAGEDIR)/usr/include" \
 		OpenSSL_LIBS="-L$(STAGEDIR)/usr/lib -lcrypto -lssl $(if $(RTCONFIG_OPENSSL11),-lpthread,)" \
 		CFLAGS="-Wall -Os -I$(TOP)/shared -I$(SRCBASE)/include -DASUSWRT $(if $(RTCONFIG_IPV6),-DUSE_IPV6,) $(if $(RTCONFIG_LETSENCRYPT),-DASUSWRT_LE,) \
-			-I$(STAGEDIR)/usr/include  -ffunction-sections -fdata-sections -std=gnu99 $(EXTRACFLAGS)" \
+			-I$(STAGEDIR)/usr/include  -ffunction-sections -fdata-sections $(EXTRACFLAGS)" \
 		LDFLAGS="-L$(TOP_PLATFORM)/nvram$(BCMEX)$(EX7) -L$(TOP)/shared $(EXTRA_NV_LDFLAGS) \
 			 -L$(STAGEDIR)/usr/lib -Wl,--gc-sections $(LDFLAGS) $(EXTRALDFLAGS)" \
 		LIBS="-lnvram -lshared $(if $(RTCONFIG_QTN),-L$(TOP)/libqcsapi_client -lqcsapi_client) -ldl"
